@@ -44,15 +44,42 @@ Future<Map<String, Object?>> runScheduledTask(
   await mcp.workspaceRuntime?.initialization;
   await mcp.workspaceRuntime?.refresh();
   cancellation.check();
+  final isSentinel = task.taskKind == ScheduledTaskKind.assistantSentinel;
+  if (isSentinel && task.mode != ScheduledTaskMode.followUp) {
+    throw StateError('sentinel_mode_must_be_follow_up');
+  }
+  if (isSentinel && task.assistantId.trim().isEmpty) {
+    throw StateError('assistant_missing');
+  }
+  if (isSentinel && (task.conversationId?.trim().isEmpty ?? true)) {
+    throw StateError('conversation_missing');
+  }
   final assistant = assistants.getById(task.assistantId);
   if (assistant == null) throw StateError('assistant_missing');
   Conversation? targetConversation;
   if (task.mode != ScheduledTaskMode.newChat) {
-    targetConversation = chat.getConversation(task.conversationId ?? '');
+    final targetId = task.conversationId ?? '';
+    targetConversation = chat.getConversation(targetId);
+    if (isSentinel) {
+      if (chat.isTemporaryConversation(targetId)) {
+        throw StateError('conversation_not_persisted');
+      }
+      final persisted = await chat.chatRepositoryOrNull?.getConversation(
+        targetId,
+      );
+      if (persisted == null) {
+        throw StateError('conversation_not_persisted');
+      }
+      targetConversation = persisted;
+    }
     if (targetConversation == null ||
         chat.isTemporaryConversation(targetConversation.id) ||
-        targetConversation.assistantId != assistant.id) {
-      throw StateError('conversation_missing');
+      targetConversation.assistantId != assistant.id) {
+      throw StateError(
+        isSentinel
+            ? 'conversation_missing_or_assistant_mismatch'
+            : 'conversation_missing',
+      );
     }
   }
   final workspaceId = targetConversation == null
@@ -89,9 +116,25 @@ Future<Map<String, Object?>> runScheduledTask(
     }
   }
   cancellation.check();
-  if (targetConversation != null &&
-      chat.getConversation(targetConversation.id)?.assistantId !=
-          assistant.id) {
+  if (targetConversation != null) {
+    if (isSentinel) {
+      if (chat.isTemporaryConversation(targetConversation.id)) {
+        throw StateError('conversation_not_persisted');
+      }
+      final persisted = await chat.chatRepositoryOrNull?.getConversation(
+        targetConversation.id,
+      );
+      if (persisted == null) throw StateError('conversation_not_persisted');
+      if (persisted.assistantId != assistant.id) {
+        throw StateError('assistant_mismatch');
+      }
+      targetConversation = persisted;
+    } else if (chat.getConversation(targetConversation.id)?.assistantId !=
+        assistant.id) {
+      throw StateError('conversation_missing');
+    }
+  }
+  if (isSentinel && targetConversation == null) {
     throw StateError('conversation_missing');
   }
   final conversation =

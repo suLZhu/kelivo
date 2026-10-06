@@ -233,6 +233,35 @@ void main() {
     });
   });
 
+  testWidgets('sentinel with a non-followUp mode never creates a chat', (
+    tester,
+  ) async {
+    final harness = await mount(tester);
+    await tester.runAsync(() async {
+      final task = ScheduledTask(
+        id: 'sentinel',
+        name: 'Sentinel',
+        prompt: 'Check',
+        assistantId: 'assistant',
+        hour: 8,
+        minute: 0,
+        taskKind: ScheduledTaskKind.assistantSentinel,
+        mode: ScheduledTaskMode.newChat,
+      );
+
+      expect(
+        await harness.run(null, task),
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          'sentinel_mode_must_be_follow_up',
+        ),
+      );
+      expect(harness.chat.created, isEmpty);
+      expect(harness.viewModel.requests, isEmpty);
+    });
+  });
+
   testWidgets('missing or moved conversations fail before starting a request', (
     tester,
   ) async {

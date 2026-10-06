@@ -164,6 +164,10 @@ void main() {
     fakeAsync((async) {
       final once = ScheduledTask.fromJson({
         ...task.toJson(),
+        'taskKind': 'assistantSentinel',
+        'reason': 'Return with an update',
+        'mode': 'followUp',
+        'conversationId': 'original-chat',
         'onceDate': '2026-09-11',
       });
       disk.tasks = [once];
@@ -177,6 +181,8 @@ void main() {
       expect(desktop.tasks.single.enabled, isFalse);
       expect(desktop.tasks.single.exhausted, isTrue);
       expect(desktop.tasks.single.nextRunAt, isNull);
+      expect(desktop.tasks.single.taskKind, ScheduledTaskKind.assistantSentinel);
+      expect(desktop.tasks.single.reason, 'Return with an update');
       expect(executions, 0);
       desktop.dispose();
     });

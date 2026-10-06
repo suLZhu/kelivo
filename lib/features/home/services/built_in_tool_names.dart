@@ -9,6 +9,7 @@ import 'local_tools_service.dart';
 /// reserved, independent of the current assistant's tool switches.
 abstract final class BuiltInToolNames {
   static Set<String> get all => {
+    'create_sentinel_once',
     SearchToolService.toolName,
     'builtin_search',
     ...MemoryTools.allToolNames,

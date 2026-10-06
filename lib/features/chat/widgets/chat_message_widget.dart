@@ -5301,6 +5301,9 @@ class _ChainOfThoughtToolStepState extends State<_ChainOfThoughtToolStep> {
 
   String _argsSummary(Map<String, dynamic> args) {
     if (args.isEmpty) return '';
+    if (widget.part.toolName == 'create_sentinel_once') {
+      return _sentinelApprovalArgsSummary(args);
+    }
     final entries = args.entries.take(2).map((entry) {
       final value = entry.value?.toString() ?? '';
       final truncated = value.length > 40
@@ -5446,7 +5449,9 @@ class _ChainOfThoughtToolStepState extends State<_ChainOfThoughtToolStep> {
         ? null
         : Text(
             summaryText.trim(),
-            maxLines: isPendingApproval ? 2 : 4,
+            maxLines: isPendingApproval
+                ? (widget.part.toolName == 'create_sentinel_once' ? 8 : 2)
+                : 4,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 12,
@@ -5635,6 +5640,9 @@ class _ToolCallItemState extends State<_ToolCallItem> {
   /// Build a short argument summary for display in the approval card.
   String _argsSummary(Map<String, dynamic> args) {
     if (args.isEmpty) return '';
+    if (widget.part.toolName == 'create_sentinel_once') {
+      return _sentinelApprovalArgsSummary(args);
+    }
     // Show first 1-2 key=value pairs, truncated
     final entries = args.entries.take(2).map((e) {
       final v = e.value?.toString() ?? '';
@@ -5904,7 +5912,9 @@ class _ToolCallItemState extends State<_ToolCallItem> {
                     fontFamily: 'monospace',
                     color: fg.body,
                   ),
-                  maxLines: 2,
+                  maxLines: widget.part.toolName == 'create_sentinel_once'
+                      ? 8
+                      : 2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -6059,6 +6069,22 @@ class _ToolCallItemState extends State<_ToolCallItem> {
       ),
     );
   }
+}
+
+String _sentinelApprovalArgsSummary(Map<String, dynamic> args) {
+  final lines = <String>[];
+  for (final key in ['runAt', 'instruction', 'reason']) {
+    if (!args.containsKey(key)) continue;
+    final value = (args[key]?.toString() ?? '').replaceAll(
+      RegExp(r'\s+'),
+      ' ',
+    );
+    final visible = value.length > 240
+        ? '${truncateHeadUtf16Safe(value, 240)}...'
+        : value;
+    lines.add('$key: $visible');
+  }
+  return lines.join('\n');
 }
 
 class _AskUserToolCard extends StatefulWidget {

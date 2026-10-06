@@ -1,5 +1,7 @@
 enum ScheduledTaskMode { newChat, followUp, regenerate }
 
+enum ScheduledTaskKind { userScheduled, assistantSentinel }
+
 enum ScheduledTaskContextPolicy { latest, snapshot }
 
 enum ScheduledTaskUnavailablePolicy { remind, skip }
@@ -30,6 +32,8 @@ class ScheduledTask {
     this.enabled = true,
     this.nextRunAt,
     this.runs = const [],
+    this.taskKind = ScheduledTaskKind.userScheduled,
+    this.reason,
     this.mode = ScheduledTaskMode.newChat,
     this.conversationId,
     this.messageId,
@@ -58,6 +62,8 @@ class ScheduledTask {
   final bool enabled;
   final DateTime? nextRunAt;
   final List<ScheduledTaskRun> runs;
+  final ScheduledTaskKind taskKind;
+  final String? reason;
   final ScheduledTaskMode mode;
   final String? conversationId, messageId, modelProvider, modelId;
   final DateTime? onceDate, startDate, endDate;
@@ -108,6 +114,8 @@ class ScheduledTask {
     nextRunAt: nextRunAt,
     exhausted: exhausted ?? this.exhausted,
     runs: runs ?? this.runs,
+    taskKind: taskKind,
+    reason: reason,
     mode: mode,
     conversationId: conversationId,
     messageId: messageId,
@@ -138,6 +146,10 @@ class ScheduledTask {
     minute: json['minute'] as int,
     weekdays: (json['weekdays'] as List).cast<int>(),
     enabled: json['enabled'] as bool,
+    taskKind: ScheduledTaskKind.values.byName(
+      json['taskKind'] as String? ?? 'userScheduled',
+    ),
+    reason: json['reason'] as String?,
     mode: ScheduledTaskMode.values.byName(json['mode'] as String? ?? 'newChat'),
     conversationId: json['conversationId'] as String?,
     messageId: json['messageId'] as String?,
@@ -186,6 +198,8 @@ class ScheduledTask {
     'minute': minute,
     'weekdays': weekdays,
     'enabled': enabled ?? this.enabled,
+    'taskKind': taskKind.name,
+    'reason': reason,
     'mode': mode.name,
     'conversationId': conversationId,
     'messageId': messageId,

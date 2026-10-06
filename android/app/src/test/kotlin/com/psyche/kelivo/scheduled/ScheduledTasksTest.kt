@@ -96,12 +96,20 @@ class ScheduledTasksTest {
     }
     @Test fun oneTimeAlarmIsConsumedBeforeExecutionAndDoesNotReturnAfterRestart() {
         val m = setup()
-        m.call("save", task() + mapOf("onceDate" to LocalDate.now().plusDays(1).toString()))
+        m.call("save", task() + mapOf(
+            "onceDate" to LocalDate.now().plusDays(1).toString(),
+            "taskKind" to "assistantSentinel",
+            "reason" to "Return with an update",
+            "mode" to "followUp",
+            "conversationId" to "original-chat",
+        ))
         val due = stored().getLong("nextRunAt")
         app.scheduledTasks.fire("a", due)
         app.scheduledTasks.fire("a", due)
         assertFalse(stored().getBoolean("enabled"))
         assertTrue(stored().getBoolean("exhausted"))
+        assertEquals("assistantSentinel", stored().getString("taskKind"))
+        assertEquals("Return with an update", stored().getString("reason"))
         assertTrue(stored().isNull("nextRunAt"))
         assertEquals(1, stored().getJSONArray("runs").length())
         val run = stored().getJSONArray("runs").getJSONObject(0)
