@@ -1205,16 +1205,18 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
 
   void _applyAutoCollapseInlineThinkIfFinished({ChatMessageWidget? oldWidget}) {
     if (!mounted) return;
-    final newExtracted = _legacyInlineThinkingFor(widget).thinkingTexts
-        .join('\n\n');
+    final newExtracted = _legacyInlineThinkingFor(
+      widget,
+    ).thinkingTexts.join('\n\n');
     final usingInlineThinkNew =
         (widget.reasoningText == null || widget.reasoningText!.isEmpty) &&
         newExtracted.isNotEmpty;
 
     bool usingInlineThinkOld = false;
     if (oldWidget != null) {
-      final oldExtracted = _legacyInlineThinkingFor(oldWidget).thinkingTexts
-          .join('\n\n');
+      final oldExtracted = _legacyInlineThinkingFor(
+        oldWidget,
+      ).thinkingTexts.join('\n\n');
       usingInlineThinkOld =
           (oldWidget.reasoningText == null ||
               oldWidget.reasoningText!.isEmpty) &&
@@ -5535,8 +5537,9 @@ class _ChainOfThoughtToolStepState extends State<_ChainOfThoughtToolStep> {
                 size: 14,
                 padding: const EdgeInsets.all(7),
                 color: fg.accent,
-                semanticLabel: AppLocalizations.of(context)!
-                    .toolApprovalApprove,
+                semanticLabel: AppLocalizations.of(
+                  context,
+                )!.toolApprovalApprove,
                 builder: (color) => Icon(Lucide.Check, size: 14, color: color),
                 onTap: () => approvalService.approve(
                   approvalRequest.toolCallId,
@@ -7172,8 +7175,9 @@ class _ReasoningSectionState extends State<_ReasoningSection> {
     );
 
     // 抽公共样式，继承当前 DefaultTextStyle（从而继承正确的颜色）
-    final TextStyle baseStyle = DefaultTextStyle.of(context).style
-        .copyWith(fontSize: 12.5, height: 1.32);
+    final TextStyle baseStyle = DefaultTextStyle.of(
+      context,
+    ).style.copyWith(fontSize: 12.5, height: 1.32);
 
     const StrutStyle baseStrut = StrutStyle(
       forceStrutHeight: true,
