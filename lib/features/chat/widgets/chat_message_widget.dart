@@ -1,18 +1,28 @@
 import '../../provider/widgets/oauth_message_recovery.dart';
+
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform, visibleForTesting;
+
 import 'dart:ui' as ui;
 import 'dart:math' as math;
+
 import 'package:flutter/services.dart';
+
 import '../../../core/services/haptics.dart';
 import '../../../shared/widgets/optional_shader_mask.dart';
+
 import 'package:provider/provider.dart';
+
 import 'dart:io';
+
 import 'package:open_filex/open_filex.dart';
+
 // import 'package:easy_image_viewer/easy_image_viewer.dart';
 import 'dart:convert';
+
 import '../../home/widgets/file_processing_indicator.dart';
 import '../pages/image_viewer_page.dart';
 import '../../../core/models/chat_message.dart';
@@ -23,7 +33,9 @@ import '../../../icons/reasoning_icons.dart';
 import '../../../core/providers/user_provider.dart';
 import '../../../core/services/chat/chat_service.dart';
 import '../../../core/providers/assistant_provider.dart';
+
 import 'package:intl/intl.dart';
+
 import '../../../utils/sandbox_path_resolver.dart';
 import '../../../utils/safe_resize_image.dart';
 import '../../../utils/utf16_safe_cut.dart';
@@ -35,10 +47,14 @@ import '../../../shared/widgets/markdown_with_highlight.dart';
 import '../../../shared/widgets/snackbar.dart';
 import '../../../shared/widgets/audio_clip_player.dart';
 import '../../../core/utils/multimodal_input_utils.dart';
+
 import 'package:url_launcher/url_launcher.dart';
+
 import '../../../l10n/app_localizations.dart';
 import '../../../core/providers/settings_provider.dart';
+
 import 'package:Kelivo/theme/app_semantic_colors.dart';
+
 import '../../../core/services/model_spec/model_spec_resolver.dart';
 import '../../../core/models/assistant_regex.dart';
 import '../../../shared/widgets/custom_bottom_sheet.dart';
@@ -1189,18 +1205,16 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
 
   void _applyAutoCollapseInlineThinkIfFinished({ChatMessageWidget? oldWidget}) {
     if (!mounted) return;
-    final newExtracted = _legacyInlineThinkingFor(
-      widget,
-    ).thinkingTexts.join('\n\n');
+    final newExtracted = _legacyInlineThinkingFor(widget).thinkingTexts
+        .join('\n\n');
     final usingInlineThinkNew =
         (widget.reasoningText == null || widget.reasoningText!.isEmpty) &&
         newExtracted.isNotEmpty;
 
     bool usingInlineThinkOld = false;
     if (oldWidget != null) {
-      final oldExtracted = _legacyInlineThinkingFor(
-        oldWidget,
-      ).thinkingTexts.join('\n\n');
+      final oldExtracted = _legacyInlineThinkingFor(oldWidget).thinkingTexts
+          .join('\n\n');
       usingInlineThinkOld =
           (oldWidget.reasoningText == null ||
               oldWidget.reasoningText!.isEmpty) &&
@@ -5450,9 +5464,7 @@ class _ChainOfThoughtToolStepState extends State<_ChainOfThoughtToolStep> {
         : Text(
             summaryText.trim(),
             maxLines: isPendingApproval
-                ? (widget.part.toolName == 'create_sentinel_once'
-                    ? 8
-                    : 2)
+                ? (widget.part.toolName == 'create_sentinel_once' ? 8 : 2)
                 : 4,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
@@ -5523,9 +5535,8 @@ class _ChainOfThoughtToolStepState extends State<_ChainOfThoughtToolStep> {
                 size: 14,
                 padding: const EdgeInsets.all(7),
                 color: fg.accent,
-                semanticLabel: AppLocalizations.of(
-                  context,
-                )!.toolApprovalApprove,
+                semanticLabel: AppLocalizations.of(context)!
+                    .toolApprovalApprove,
                 builder: (color) => Icon(Lucide.Check, size: 14, color: color),
                 onTap: () => approvalService.approve(
                   approvalRequest.toolCallId,
@@ -6077,10 +6088,7 @@ String _sentinelApprovalArgsSummary(Map<String, dynamic> args) {
   final lines = <String>[];
   for (final key in ['runAt', 'instruction', 'reason']) {
     if (!args.containsKey(key)) continue;
-    final value = (args[key]?.toString() ?? '').replaceAll(
-      RegExp(r'\s+'),
-      ' ',
-    );
+    final value = (args[key]?.toString() ?? '').replaceAll(RegExp(r'\s+'), ' ');
     final visible = value.length > 240
         ? '${truncateHeadUtf16Safe(value, 240)}...'
         : value;
@@ -7164,9 +7172,8 @@ class _ReasoningSectionState extends State<_ReasoningSection> {
     );
 
     // 抽公共样式，继承当前 DefaultTextStyle（从而继承正确的颜色）
-    final TextStyle baseStyle = DefaultTextStyle.of(
-      context,
-    ).style.copyWith(fontSize: 12.5, height: 1.32);
+    final TextStyle baseStyle = DefaultTextStyle.of(context).style
+        .copyWith(fontSize: 12.5, height: 1.32);
 
     const StrutStyle baseStrut = StrutStyle(
       forceStrutHeight: true,
