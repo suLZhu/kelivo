@@ -181,7 +181,10 @@ void main() {
       expect(desktop.tasks.single.enabled, isFalse);
       expect(desktop.tasks.single.exhausted, isTrue);
       expect(desktop.tasks.single.nextRunAt, isNull);
-      expect(desktop.tasks.single.taskKind, ScheduledTaskKind.assistantSentinel);
+      expect(
+        desktop.tasks.single.taskKind,
+        ScheduledTaskKind.assistantSentinel,
+      );
       expect(desktop.tasks.single.reason, 'Return with an update');
       expect(executions, 0);
       desktop.dispose();

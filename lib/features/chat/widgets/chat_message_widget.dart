@@ -5450,7 +5450,9 @@ class _ChainOfThoughtToolStepState extends State<_ChainOfThoughtToolStep> {
         : Text(
             summaryText.trim(),
             maxLines: isPendingApproval
-                ? (widget.part.toolName == 'create_sentinel_once' ? 8 : 2)
+                ? (widget.part.toolName == 'create_sentinel_once'
+                    ? 8
+                    : 2)
                 : 4,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(

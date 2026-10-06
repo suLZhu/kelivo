@@ -101,23 +101,26 @@ void main() {
     });
   });
 
-  test('task builder binds host identity and creates once follow-up sentinel', () {
-    final task = SentinelTaskTool.buildTask(
-      runAtLocal: DateTime(2099, 4, 5, 10, 30),
-      instruction: 'Check the result',
-      reason: 'The user expects an update',
-      assistantId: 'host-assistant',
-      conversationId: 'host-conversation',
-    );
+  test(
+    'task builder binds host identity and creates once follow-up sentinel',
+    () {
+      final task = SentinelTaskTool.buildTask(
+        runAtLocal: DateTime(2099, 4, 5, 10, 30),
+        instruction: 'Check the result',
+        reason: 'The user expects an update',
+        assistantId: 'host-assistant',
+        conversationId: 'host-conversation',
+      );
 
-    expect(task.taskKind, ScheduledTaskKind.assistantSentinel);
-    expect(task.mode, ScheduledTaskMode.followUp);
-    expect(task.repeat, ScheduledTaskRepeat.once);
-    expect(task.assistantId, 'host-assistant');
-    expect(task.conversationId, 'host-conversation');
-    expect(task.prompt, 'Check the result');
-    expect(task.reason, 'The user expects an update');
-    expect(task.enabled, isTrue);
-    expect(task.exhausted, isFalse);
-  });
+      expect(task.taskKind, ScheduledTaskKind.assistantSentinel);
+      expect(task.mode, ScheduledTaskMode.followUp);
+      expect(task.repeat, ScheduledTaskRepeat.once);
+      expect(task.assistantId, 'host-assistant');
+      expect(task.conversationId, 'host-conversation');
+      expect(task.prompt, 'Check the result');
+      expect(task.reason, 'The user expects an update');
+      expect(task.enabled, isTrue);
+      expect(task.exhausted, isFalse);
+    },
+  );
 }

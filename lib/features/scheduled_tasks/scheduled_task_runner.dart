@@ -74,7 +74,7 @@ Future<Map<String, Object?>> runScheduledTask(
     }
     if (targetConversation == null ||
         chat.isTemporaryConversation(targetConversation.id) ||
-      targetConversation.assistantId != assistant.id) {
+        targetConversation.assistantId != assistant.id) {
       throw StateError(
         isSentinel
             ? 'conversation_missing_or_assistant_mismatch'
