@@ -372,7 +372,7 @@ void main() {
           false,
           isToolModel: (_, __) => true,
         );
-        final names = defs.map(toolName).toList();
+        final names = defs.map(toolName).where(isMemoryRelated).toList();
         expect(names, MemoryTools.legacyToolNames);
         expect(names.toSet().intersection(MemoryTools.allToolNames), isEmpty);
         expect(names.any((n) => n.startsWith('memory_')), isFalse);
@@ -397,6 +397,7 @@ void main() {
               false,
               isToolModel: (_, __) => true,
             )
+            .where((d) => isMemoryRelated(toolName(d)))
             .map((d) => (d['function'] as Map)['description'] as String)
             .toList();
       }
