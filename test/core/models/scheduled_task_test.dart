@@ -4,6 +4,44 @@ import 'package:Kelivo/core/models/scheduled_task.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('legacy JSON defaults to userScheduled with null reason', () {
+    final task = ScheduledTask.fromJson({
+      'id': 'legacy',
+      'name': 'Legacy',
+      'prompt': 'Prompt',
+      'assistantId': 'assistant',
+      'hour': 9,
+      'minute': 30,
+      'weekdays': [1, 2, 3, 4, 5, 6, 7],
+      'enabled': true,
+    });
+
+    expect(task.taskKind, ScheduledTaskKind.userScheduled);
+    expect(task.reason, isNull);
+  });
+
+  test('taskKind and reason survive JSON round trip and state updates', () {
+    final task = ScheduledTask(
+      id: 'sentinel',
+      name: 'Check',
+      prompt: 'Check this',
+      assistantId: 'assistant',
+      hour: 9,
+      minute: 30,
+      taskKind: ScheduledTaskKind.assistantSentinel,
+      reason: 'Follow up',
+    );
+    final parsed = ScheduledTask.fromJson(task.toJson());
+
+    expect(parsed.taskKind, ScheduledTaskKind.assistantSentinel);
+    expect(parsed.reason, 'Follow up');
+    expect(parsed.withState(nextRunAt: null).reason, 'Follow up');
+    expect(
+      parsed.withState(nextRunAt: null).taskKind,
+      ScheduledTaskKind.assistantSentinel,
+    );
+  });
+
   test(
     'new tasks skip unavailable runs and preserve an explicit reminder choice',
     () {

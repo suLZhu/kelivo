@@ -111,10 +111,14 @@ void main() {
         ),
       );
 
-      expect(disabledTools, isEmpty);
-      expect(enabledTools.map((tool) => tool['function']['name']), [
-        SearchToolService.toolName,
-      ]);
+      expect(
+        disabledTools.map((tool) => tool['function']['name']),
+        isNot(contains(SearchToolService.toolName)),
+      );
+      expect(
+        enabledTools.map((tool) => tool['function']['name']),
+        contains(SearchToolService.toolName),
+      );
     });
   });
 }

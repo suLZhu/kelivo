@@ -1,18 +1,28 @@
 import '../../provider/widgets/oauth_message_recovery.dart';
+
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform, visibleForTesting;
+
 import 'dart:ui' as ui;
 import 'dart:math' as math;
+
 import 'package:flutter/services.dart';
+
 import '../../../core/services/haptics.dart';
 import '../../../shared/widgets/optional_shader_mask.dart';
+
 import 'package:provider/provider.dart';
+
 import 'dart:io';
+
 import 'package:open_filex/open_filex.dart';
+
 // import 'package:easy_image_viewer/easy_image_viewer.dart';
 import 'dart:convert';
+
 import '../../home/widgets/file_processing_indicator.dart';
 import '../pages/image_viewer_page.dart';
 import '../../../core/models/chat_message.dart';
@@ -23,7 +33,9 @@ import '../../../icons/reasoning_icons.dart';
 import '../../../core/providers/user_provider.dart';
 import '../../../core/services/chat/chat_service.dart';
 import '../../../core/providers/assistant_provider.dart';
+
 import 'package:intl/intl.dart';
+
 import '../../../utils/sandbox_path_resolver.dart';
 import '../../../utils/safe_resize_image.dart';
 import '../../../utils/utf16_safe_cut.dart';
@@ -35,10 +47,14 @@ import '../../../shared/widgets/markdown_with_highlight.dart';
 import '../../../shared/widgets/snackbar.dart';
 import '../../../shared/widgets/audio_clip_player.dart';
 import '../../../core/utils/multimodal_input_utils.dart';
+
 import 'package:url_launcher/url_launcher.dart';
+
 import '../../../l10n/app_localizations.dart';
 import '../../../core/providers/settings_provider.dart';
+
 import 'package:Kelivo/theme/app_semantic_colors.dart';
+
 import '../../../core/services/model_spec/model_spec_resolver.dart';
 import '../../../core/models/assistant_regex.dart';
 import '../../../shared/widgets/custom_bottom_sheet.dart';
@@ -5301,6 +5317,9 @@ class _ChainOfThoughtToolStepState extends State<_ChainOfThoughtToolStep> {
 
   String _argsSummary(Map<String, dynamic> args) {
     if (args.isEmpty) return '';
+    if (widget.part.toolName == 'create_sentinel_once') {
+      return _sentinelApprovalArgsSummary(args);
+    }
     final entries = args.entries.take(2).map((entry) {
       final value = entry.value?.toString() ?? '';
       final truncated = value.length > 40
@@ -5446,7 +5465,9 @@ class _ChainOfThoughtToolStepState extends State<_ChainOfThoughtToolStep> {
         ? null
         : Text(
             summaryText.trim(),
-            maxLines: isPendingApproval ? 2 : 4,
+            maxLines: isPendingApproval
+                ? (widget.part.toolName == 'create_sentinel_once' ? 8 : 2)
+                : 4,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 12,
@@ -5635,6 +5656,9 @@ class _ToolCallItemState extends State<_ToolCallItem> {
   /// Build a short argument summary for display in the approval card.
   String _argsSummary(Map<String, dynamic> args) {
     if (args.isEmpty) return '';
+    if (widget.part.toolName == 'create_sentinel_once') {
+      return _sentinelApprovalArgsSummary(args);
+    }
     // Show first 1-2 key=value pairs, truncated
     final entries = args.entries.take(2).map((e) {
       final v = e.value?.toString() ?? '';
@@ -5904,7 +5928,9 @@ class _ToolCallItemState extends State<_ToolCallItem> {
                     fontFamily: 'monospace',
                     color: fg.body,
                   ),
-                  maxLines: 2,
+                  maxLines: widget.part.toolName == 'create_sentinel_once'
+                      ? 8
+                      : 2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -6059,6 +6085,19 @@ class _ToolCallItemState extends State<_ToolCallItem> {
       ),
     );
   }
+}
+
+String _sentinelApprovalArgsSummary(Map<String, dynamic> args) {
+  final lines = <String>[];
+  for (final key in ['runAt', 'instruction', 'reason']) {
+    if (!args.containsKey(key)) continue;
+    final value = (args[key]?.toString() ?? '').replaceAll(RegExp(r'\s+'), ' ');
+    final visible = value.length > 240
+        ? '${truncateHeadUtf16Safe(value, 240)}...'
+        : value;
+    lines.add('$key: $visible');
+  }
+  return lines.join('\n');
 }
 
 class _AskUserToolCard extends StatefulWidget {
