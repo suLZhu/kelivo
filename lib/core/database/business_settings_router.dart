@@ -43,6 +43,7 @@ final class BusinessKeyRegistry {
 
   static const preferenceKeys = <String>{
     'desktop_scheduled_tasks_v1',
+    'conversation_order_v1',
     'scheduled_task_results_v1',
     'current_assistant_id_v1',
     'selected_model_v1',
