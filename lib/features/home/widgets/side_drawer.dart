@@ -278,10 +278,7 @@ class _SideDrawerState extends State<SideDrawer> with TickerProviderStateMixin {
     await settings.setConversationOrder(ordered);
   }
 
-  Future<void> _reorderConversation(
-    String draggedId,
-    String targetId,
-  ) async {
+  Future<void> _reorderConversation(String draggedId, String targetId) async {
     if (draggedId == targetId) return;
     final chatService = context.read<ChatService>();
     final settings = context.read<SettingsProvider>();
@@ -4516,151 +4513,151 @@ class _ChatTileState extends State<_ChatTile> {
         unawaited(widget.onReorder!(details.data, widget.chat.id));
       },
       builder: (context, candidateData, rejectedData) => Padding(
-      padding: EdgeInsets.only(bottom: vGap),
-      child: GestureDetector(
-        onSecondaryTapDown: (details) {
-          if (_isDesktop && !widget.selectionMode) {
-            widget.onSecondaryTap?.call(details.globalPosition);
-          }
-        },
-        onLongPress: () {
-          if (_isDesktop || widget.selectionMode) return;
-          widget.onLongPress?.call();
-        },
-        child: MouseRegion(
-          onEnter: (_) {
-            if (_isDesktop) {
-              setState(() => _hovered = true);
-              _prefetchOnHover();
+        padding: EdgeInsets.only(bottom: vGap),
+        child: GestureDetector(
+          onSecondaryTapDown: (details) {
+            if (_isDesktop && !widget.selectionMode) {
+              widget.onSecondaryTap?.call(details.globalPosition);
             }
           },
-          onExit: (_) {
-            if (_isDesktop) setState(() => _hovered = false);
+          onLongPress: () {
+            if (_isDesktop || widget.selectionMode) return;
+            widget.onLongPress?.call();
           },
-          cursor: _isDesktop
-              ? SystemMouseCursors.click
-              : SystemMouseCursors.basic,
-          child: IosCardPress(
-            baseColor: _dragTargetActive
-                ? cs.primary.withValues(alpha: embedded ? 0.24 : 0.18)
-                : base,
-            borderRadius: BorderRadius.circular(16),
-            haptics: false,
-            onTap: widget.selectionMode
-                ? () {
-                    Haptics.light();
-                    widget.onToggleSelect?.call();
-                  }
-                : widget.onTap,
-            onLongPress: (_isDesktop || widget.selectionMode)
-                ? null
-                : widget.onLongPress,
-            padding: EdgeInsets.fromLTRB(
-              _isDesktop ? 14 : 14,
-              _isDesktop ? 9 : 10,
-              8,
-              _isDesktop ? 9 : 10,
-            ),
-            child: TweenAnimationBuilder<double>(
-              tween: Tween<double>(end: widget.selectionMode ? 1 : 0),
-              duration: const Duration(milliseconds: 240),
-              curve: Curves.easeOutCubic,
-              builder: (context, t, child) {
-                return Row(
-                  children: [
-                    ClipRect(
-                      child: SizedBox(
-                        width: 28 * t,
-                        child: Opacity(
-                          opacity: t,
-                          child: Transform.scale(
-                            scale: 0.8 + 0.2 * t,
-                            child: IgnorePointer(
-                              child: IosCheckbox(
-                                value: widget.selected,
-                                size: 20,
-                                hitTestSize: 20,
-                                enableHaptics: false,
-                                onChanged: (_) {},
+          child: MouseRegion(
+            onEnter: (_) {
+              if (_isDesktop) {
+                setState(() => _hovered = true);
+                _prefetchOnHover();
+              }
+            },
+            onExit: (_) {
+              if (_isDesktop) setState(() => _hovered = false);
+            },
+            cursor: _isDesktop
+                ? SystemMouseCursors.click
+                : SystemMouseCursors.basic,
+            child: IosCardPress(
+              baseColor: _dragTargetActive
+                  ? cs.primary.withValues(alpha: embedded ? 0.24 : 0.18)
+                  : base,
+              borderRadius: BorderRadius.circular(16),
+              haptics: false,
+              onTap: widget.selectionMode
+                  ? () {
+                      Haptics.light();
+                      widget.onToggleSelect?.call();
+                    }
+                  : widget.onTap,
+              onLongPress: (_isDesktop || widget.selectionMode)
+                  ? null
+                  : widget.onLongPress,
+              padding: EdgeInsets.fromLTRB(
+                _isDesktop ? 14 : 14,
+                _isDesktop ? 9 : 10,
+                8,
+                _isDesktop ? 9 : 10,
+              ),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween<double>(end: widget.selectionMode ? 1 : 0),
+                duration: const Duration(milliseconds: 240),
+                curve: Curves.easeOutCubic,
+                builder: (context, t, child) {
+                  return Row(
+                    children: [
+                      ClipRect(
+                        child: SizedBox(
+                          width: 28 * t,
+                          child: Opacity(
+                            opacity: t,
+                            child: Transform.scale(
+                              scale: 0.8 + 0.2 * t,
+                              child: IgnorePointer(
+                                child: IosCheckbox(
+                                  value: widget.selected,
+                                  size: 20,
+                                  hitTestSize: 20,
+                                  enableHaptics: false,
+                                  onChanged: (_) {},
+                                ),
                               ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    if (!widget.selectionMode &&
-                        widget.onReorder != null) ...[
-                      LongPressDraggable<String>(
-                        data: widget.chat.id,
-                        delay: const Duration(milliseconds: 180),
-                        hapticFeedbackOnStart: true,
-                        feedback: Material(
-                          color: Colors.transparent,
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: cs.surface,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Color(0x33000000),
-                                  blurRadius: 12,
-                                ),
-                              ],
+                      if (!widget.selectionMode &&
+                          widget.onReorder != null) ...[
+                        LongPressDraggable<String>(
+                          data: widget.chat.id,
+                          delay: const Duration(milliseconds: 180),
+                          hapticFeedbackOnStart: true,
+                          feedback: Material(
+                            color: Colors.transparent,
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: cs.surface,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(0x33000000),
+                                    blurRadius: 12,
+                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                Lucide.GripVertical,
+                                size: 22,
+                                color: cs.primary,
+                              ),
                             ),
+                          ),
+                          childWhenDragging: Opacity(
+                            opacity: 0.3,
                             child: Icon(
                               Lucide.GripVertical,
-                              size: 22,
-                              color: cs.primary,
+                              size: 20,
+                              color: widget.textColor,
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: Icon(
+                              Lucide.GripVertical,
+                              size: 20,
+                              color: widget.textColor.withValues(alpha: 0.55),
                             ),
                           ),
                         ),
-                        childWhenDragging: Opacity(
-                          opacity: 0.3,
-                          child: Icon(
-                            Lucide.GripVertical,
-                            size: 20,
+                      ],
+                      Expanded(
+                        child: Text(
+                          [
+                            if ((widget.chat.assistantName ?? '').isNotEmpty)
+                              widget.chat.assistantName!,
+                            widget.chat.title,
+                          ].join(' · '),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: _isDesktop ? 14 : 15,
                             color: widget.textColor,
-                          ),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: Icon(
-                            Lucide.GripVertical,
-                            size: 20,
-                            color: widget.textColor.withValues(alpha: 0.55),
+                            fontWeight: AppFontWeights.regular,
                           ),
                         ),
                       ),
+                      if (widget.loading) ...[
+                        const SizedBox(width: 8),
+                        _LoadingDot(),
+                      ],
                     ],
-                    Expanded(
-                      child: Text(
-                        [
-                          if ((widget.chat.assistantName ?? '').isNotEmpty)
-                            widget.chat.assistantName!,
-                          widget.chat.title,
-                        ].join(' · '),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: _isDesktop ? 14 : 15,
-                          color: widget.textColor,
-                          fontWeight: AppFontWeights.regular,
-                        ),
-                      ),
-                    ),
-                    if (widget.loading) ...[
-                      const SizedBox(width: 8),
-                      _LoadingDot(),
-                    ],
-                  ],
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
         ),
       ),
-    ),
     );
   }
 }
