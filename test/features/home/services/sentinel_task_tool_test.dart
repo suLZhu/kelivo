@@ -19,6 +19,30 @@ void main() {
     });
   });
 
+  group('sentinel management definitions', () {
+    test('publishes create, update, and cancel tools', () {
+      final names = SentinelTaskTool.definitions
+          .map((definition) => (definition['function'] as Map)['name'])
+          .toSet();
+
+      expect(names, SentinelTaskTool.names);
+    });
+
+    test('update and cancel never expose host identity fields', () {
+      for (final definition in [
+        SentinelTaskTool.updateDefinition,
+        SentinelTaskTool.cancelDefinition,
+      ]) {
+        final function = definition['function'] as Map;
+        final parameters = function['parameters'] as Map;
+        final properties = parameters['properties'] as Map;
+
+        expect(properties, isNot(contains('assistantId')));
+        expect(properties, isNot(contains('conversationId')));
+      }
+    });
+  });
+
   group('runAt parsing', () {
     test('requires an explicit time zone', () {
       expect(
@@ -105,6 +129,7 @@ void main() {
     'task builder binds host identity and creates once follow-up sentinel',
     () {
       final task = SentinelTaskTool.buildTask(
+        id: 'sentinel-id',
         runAtLocal: DateTime(2099, 4, 5, 10, 30),
         instruction: 'Check the result',
         reason: 'The user expects an update',
@@ -112,6 +137,7 @@ void main() {
         conversationId: 'host-conversation',
       );
 
+      expect(task.id, 'sentinel-id');
       expect(task.taskKind, ScheduledTaskKind.assistantSentinel);
       expect(task.mode, ScheduledTaskMode.followUp);
       expect(task.repeat, ScheduledTaskRepeat.once);
