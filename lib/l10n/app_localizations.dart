@@ -22943,6 +22943,19 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save'**
   String get chatRoomSave;
+
+  String get chatRoomAuthCollection;
+  String get chatRoomEmail;
+  String get chatRoomPassword;
+  String get chatRoomSaveAndConnect;
+  String get chatRoomErrorInvalidConfiguration;
+  String get chatRoomErrorCredentialsRequired;
+  String get chatRoomErrorInvalidCredentials;
+  String get chatRoomErrorUnauthorized;
+  String get chatRoomErrorForbidden;
+  String get chatRoomErrorNetwork;
+  String get chatRoomErrorServerUnavailable;
+  String get chatRoomErrorUnexpected;
 }
 
 class _AppLocalizationsDelegate

@@ -5636,5 +5636,17 @@
   "chatRoomServerUrl": "PocketBase server address",
   "chatRoomCollection": "Collection name",
   "chatRoomCancel": "Cancel",
-  "chatRoomSave": "Save"
+  "chatRoomSave": "Save",
+  "chatRoomAuthCollection": "PocketBase authentication collection",
+  "chatRoomEmail": "Email",
+  "chatRoomPassword": "Password",
+  "chatRoomSaveAndConnect": "Save and connect",
+  "chatRoomErrorInvalidConfiguration": "Enter a valid PocketBase server address and collection names.",
+  "chatRoomErrorCredentialsRequired": "Enter your PocketBase email and password in chat room settings.",
+  "chatRoomErrorInvalidCredentials": "The email or password is incorrect.",
+  "chatRoomErrorUnauthorized": "Your session is no longer authorized. Please reconnect.",
+  "chatRoomErrorForbidden": "The account is not allowed to access the chat room.",
+  "chatRoomErrorNetwork": "A network error prevented connecting to PocketBase.",
+  "chatRoomErrorServerUnavailable": "PocketBase is unavailable or returned a server error.",
+  "chatRoomErrorUnexpected": "The chat room could not complete this request."
 }

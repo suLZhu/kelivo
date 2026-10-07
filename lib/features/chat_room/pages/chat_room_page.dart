@@ -11,6 +11,8 @@ import '../../../theme/app_font_weights.dart';
 import '../models/chat_room_message.dart';
 import '../services/pocketbase_chat_service.dart';
 
+const _defaultChatRoomAuthCollection = 'chat_users';
+
 class ChatRoomPage extends StatefulWidget {
   const ChatRoomPage({super.key});
 
@@ -28,7 +30,9 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
   ChatRoomConnectionState _connection = ChatRoomConnectionState.disconnected;
   String _serverUrl = '';
   String _collection = _defaultCollection;
-  Object? _error;
+  String _authCollection = _defaultChatRoomAuthCollection;
+  String _email = '';
+  ChatRoomFailure? _error;
   bool _loading = false;
   bool _sending = false;
 
@@ -53,25 +57,33 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     setState(() {
       _serverUrl = settings.chatRoomPocketBaseServerUrl;
       _collection = settings.chatRoomPocketBaseCollection;
+      _authCollection = settings.chatRoomPocketBaseAuthCollection;
+      _email = settings.chatRoomPocketBaseEmail;
     });
-    if (_serverUrl.isNotEmpty) await _connect();
+    if (_serverUrl.isNotEmpty && _email.isNotEmpty) {
+      await _connect();
+    } else if (_serverUrl.isNotEmpty) {
+      setState(() => _error = ChatRoomFailure.credentialsRequired);
+    }
   }
 
-  Future<void> _connect() async {
+  Future<void> _connect({
+    String password = '',
+    bool forcePasswordLogin = false,
+  }) async {
     final url = _serverUrl.trim();
     final uri = Uri.tryParse(url);
     if (url.isEmpty ||
         uri == null ||
         uri.host.isEmpty ||
         !(uri.scheme == 'http' || uri.scheme == 'https') ||
-        _collection.trim().isEmpty) {
+        _collection.trim().isEmpty ||
+        _authCollection.trim().isEmpty) {
       if (!mounted) return;
       setState(() {
         _loading = false;
         _connection = ChatRoomConnectionState.error;
-        _error = ArgumentError(
-          'Enter a valid PocketBase URL and collection name in chat room settings.',
-        );
+        _error = ChatRoomFailure.invalidConfiguration;
       });
       return;
     }
@@ -81,7 +93,8 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     if (!mounted) return;
     final service = PocketBaseChatService(
       serverUrl: url,
-      collection: _collection.trim(),
+      messageCollection: _collection.trim(),
+      authCollection: _authCollection.trim(),
     );
     _service = service;
     setState(() {
@@ -91,12 +104,15 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
       _messages = const [];
     });
     try {
-      final history = await service.subscribe(
+      final history = await service.connect(
+        email: _email,
+        password: password,
+        forcePasswordLogin: forcePasswordLogin,
         onStatus: (state, [error]) {
           if (!mounted || !identical(_service, service)) return;
           setState(() {
             _connection = state;
-            _error = error;
+            _error = error is ChatRoomServiceException ? error.failure : null;
           });
         },
         onMessage: (message) {
@@ -121,7 +137,9 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     } catch (error) {
       if (!mounted || !identical(_service, service)) return;
       setState(() {
-        _error = error;
+        _error = error is ChatRoomServiceException
+            ? error.failure
+            : ChatRoomFailure.unexpected;
         _connection = ChatRoomConnectionState.error;
         _loading = false;
       });
@@ -140,31 +158,61 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
   }
 
   Future<void> _configure() async {
-    final config = await showDialog<({String serverUrl, String collection})>(
-      context: context,
-      builder: (_) => _ChatRoomConfigDialog(
-        serverUrl: _serverUrl,
-        collection: _collection,
-        defaultCollection: _defaultCollection,
-      ),
-    );
+    final config =
+        await showDialog<
+          ({
+            String serverUrl,
+            String collection,
+            String authCollection,
+            String email,
+            String password,
+          })
+        >(
+          context: context,
+          builder: (_) => _ChatRoomConfigDialog(
+            serverUrl: _serverUrl,
+            collection: _collection,
+            authCollection: _authCollection,
+            email: _email,
+            defaultCollection: _defaultCollection,
+          ),
+        );
     if (config == null || !mounted) return;
     final normalizedUrl = config.serverUrl.trim().replaceFirst(
       RegExp(r'/+$'),
       '',
     );
     final normalizedCollection = config.collection.trim();
-    if (normalizedUrl.isEmpty || normalizedCollection.isEmpty) return;
+    final normalizedAuthCollection = config.authCollection.trim();
+    final normalizedEmail = config.email.trim();
+    if (normalizedUrl.isEmpty ||
+        normalizedCollection.isEmpty ||
+        normalizedAuthCollection.isEmpty)
+      return;
+    final identityChanged =
+        normalizedUrl != _serverUrl ||
+        normalizedAuthCollection != _authCollection ||
+        normalizedEmail != _email;
+    final oldService = _service;
+    _service = null;
+    await oldService?.close(clearPersistedCredentials: identityChanged);
     await context.read<SettingsProvider>().setChatRoomPocketBaseConfig(
       serverUrl: normalizedUrl,
       collection: normalizedCollection,
+      authCollection: normalizedAuthCollection,
+      email: normalizedEmail,
     );
     if (!mounted) return;
     setState(() {
       _serverUrl = normalizedUrl;
       _collection = normalizedCollection;
+      _authCollection = normalizedAuthCollection;
+      _email = normalizedEmail;
     });
-    await _connect();
+    await _connect(
+      password: config.password,
+      forcePasswordLogin: config.password.isNotEmpty,
+    );
   }
 
   Future<void> _send() async {
@@ -186,7 +234,9 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     } catch (error) {
       if (!mounted) return;
       setState(() {
-        _error = error;
+        _error = error is ChatRoomServiceException
+            ? error.failure
+            : ChatRoomFailure.unexpected;
         _connection = ChatRoomConnectionState.error;
       });
     } finally {
@@ -199,6 +249,21 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     ChatRoomConnectionState.connected => l10n.chatRoomStatusConnected,
     ChatRoomConnectionState.disconnected => l10n.chatRoomStatusDisconnected,
     ChatRoomConnectionState.error => l10n.chatRoomStatusError,
+  };
+
+  String? _errorText(AppLocalizations l10n) => switch (_error) {
+    ChatRoomFailure.invalidConfiguration =>
+      l10n.chatRoomErrorInvalidConfiguration,
+    ChatRoomFailure.credentialsRequired =>
+      l10n.chatRoomErrorCredentialsRequired,
+    ChatRoomFailure.invalidCredentials => l10n.chatRoomErrorInvalidCredentials,
+    ChatRoomFailure.unauthorized => l10n.chatRoomErrorUnauthorized,
+    ChatRoomFailure.forbidden => l10n.chatRoomErrorForbidden,
+    ChatRoomFailure.network => l10n.chatRoomErrorNetwork,
+    ChatRoomFailure.serverUnavailable => l10n.chatRoomErrorServerUnavailable,
+    ChatRoomFailure.secureStorage ||
+    ChatRoomFailure.unexpected => l10n.chatRoomErrorUnexpected,
+    null => null,
   };
 
   @override
@@ -235,11 +300,12 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                   isConnected: _connection == ChatRoomConnectionState.connected,
                   showReconnect:
                       _serverUrl.isNotEmpty &&
+                      _email.isNotEmpty &&
                       (_connection == ChatRoomConnectionState.disconnected ||
                           _connection == ChatRoomConnectionState.error),
                   onReconnect: _connect,
                 ),
-                if (_error != null)
+                if (_errorText(l10n) case final errorText?)
                   Container(
                     width: double.infinity,
                     color: colors.errorContainer.withValues(alpha: 0.55),
@@ -248,14 +314,14 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                       vertical: 8,
                     ),
                     child: Text(
-                      '${l10n.chatRoomErrorDetails}: $_error',
+                      '${l10n.chatRoomErrorDetails}: $errorText',
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(color: colors.onErrorContainer),
                     ),
                   ),
                 Expanded(
-                  child: _serverUrl.isEmpty
+                  child: _serverUrl.isEmpty || _email.isEmpty
                       ? _EmptyHint(
                           icon: LucideIcons.settings2,
                           text: l10n.chatRoomConfigurePrompt,
@@ -476,10 +542,14 @@ class _ChatRoomConfigDialog extends StatefulWidget {
   const _ChatRoomConfigDialog({
     required this.serverUrl,
     required this.collection,
+    required this.authCollection,
+    required this.email,
     required this.defaultCollection,
   });
   final String serverUrl;
   final String collection;
+  final String authCollection;
+  final String email;
   final String defaultCollection;
 
   @override
@@ -489,6 +559,9 @@ class _ChatRoomConfigDialog extends StatefulWidget {
 class _ChatRoomConfigDialogState extends State<_ChatRoomConfigDialog> {
   late final TextEditingController _urlController;
   late final TextEditingController _collectionController;
+  late final TextEditingController _authCollectionController;
+  late final TextEditingController _emailController;
+  late final TextEditingController _passwordController;
 
   @override
   void initState() {
@@ -499,12 +572,22 @@ class _ChatRoomConfigDialogState extends State<_ChatRoomConfigDialog> {
           ? widget.defaultCollection
           : widget.collection,
     );
+    _authCollectionController = TextEditingController(
+      text: widget.authCollection.isEmpty
+          ? _defaultChatRoomAuthCollection
+          : widget.authCollection,
+    );
+    _emailController = TextEditingController(text: widget.email);
+    _passwordController = TextEditingController();
   }
 
   @override
   void dispose() {
     _urlController.dispose();
     _collectionController.dispose();
+    _authCollectionController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -514,27 +597,49 @@ class _ChatRoomConfigDialogState extends State<_ChatRoomConfigDialog> {
     return AlertDialog(
       title: Text(l10n.chatRoomConfigure),
       content: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 460),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _urlController,
-              keyboardType: TextInputType.url,
-              decoration: InputDecoration(
-                labelText: l10n.chatRoomServerUrl,
-                hintText: 'https://pocketbase.example.com',
+        constraints: const BoxConstraints(maxWidth: 460, maxHeight: 600),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _urlController,
+                keyboardType: TextInputType.url,
+                decoration: InputDecoration(
+                  labelText: l10n.chatRoomServerUrl,
+                  hintText: 'https://pocketbase.example.com',
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _collectionController,
-              decoration: InputDecoration(
-                labelText: l10n.chatRoomCollection,
-                hintText: widget.defaultCollection,
+              const SizedBox(height: 12),
+              TextField(
+                controller: _collectionController,
+                decoration: InputDecoration(
+                  labelText: l10n.chatRoomCollection,
+                  hintText: widget.defaultCollection,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 12),
+              TextField(
+                controller: _authCollectionController,
+                decoration: InputDecoration(
+                  labelText: l10n.chatRoomAuthCollection,
+                  hintText: _defaultChatRoomAuthCollection,
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(labelText: l10n.chatRoomEmail),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: InputDecoration(labelText: l10n.chatRoomPassword),
+              ),
+            ],
+          ),
         ),
       ),
       actions: [
@@ -550,15 +655,19 @@ class _ChatRoomConfigDialogState extends State<_ChatRoomConfigDialog> {
                 !uri.hasAuthority ||
                 uri.host.isEmpty ||
                 !(uri.scheme == 'http' || uri.scheme == 'https') ||
-                _collectionController.text.trim().isEmpty) {
+                _collectionController.text.trim().isEmpty ||
+                _authCollectionController.text.trim().isEmpty) {
               return;
             }
             Navigator.of(context).pop((
               serverUrl: url,
               collection: _collectionController.text.trim(),
+              authCollection: _authCollectionController.text.trim(),
+              email: _emailController.text.trim(),
+              password: _passwordController.text,
             ));
           },
-          child: Text(l10n.chatRoomSave),
+          child: Text(l10n.chatRoomSaveAndConnect),
         ),
       ],
     );
