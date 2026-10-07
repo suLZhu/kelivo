@@ -22944,17 +22944,76 @@ abstract class AppLocalizations {
   /// **'Save'**
   String get chatRoomSave;
 
+  /// No description provided for @chatRoomAuthCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'PocketBase authentication collection'**
   String get chatRoomAuthCollection;
+
+  /// No description provided for @chatRoomEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
   String get chatRoomEmail;
+
+  /// No description provided for @chatRoomPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
   String get chatRoomPassword;
+
+  /// No description provided for @chatRoomSaveAndConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Save and connect'**
   String get chatRoomSaveAndConnect;
+
+  /// No description provided for @chatRoomErrorInvalidConfiguration.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid PocketBase server address and collection names.'**
   String get chatRoomErrorInvalidConfiguration;
+
+  /// No description provided for @chatRoomErrorCredentialsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your PocketBase email and password in chat room settings.'**
   String get chatRoomErrorCredentialsRequired;
+
+  /// No description provided for @chatRoomErrorInvalidCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'The email or password is incorrect.'**
   String get chatRoomErrorInvalidCredentials;
+
+  /// No description provided for @chatRoomErrorUnauthorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session is no longer authorized. Please reconnect.'**
   String get chatRoomErrorUnauthorized;
+
+  /// No description provided for @chatRoomErrorForbidden.
+  ///
+  /// In en, this message translates to:
+  /// **'The account is not allowed to access the chat room.'**
   String get chatRoomErrorForbidden;
+
+  /// No description provided for @chatRoomErrorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'A network error prevented connecting to PocketBase.'**
   String get chatRoomErrorNetwork;
+
+  /// No description provided for @chatRoomErrorServerUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'PocketBase is unavailable or returned a server error.'**
   String get chatRoomErrorServerUnavailable;
+
+  /// No description provided for @chatRoomErrorUnexpected.
+  ///
+  /// In en, this message translates to:
+  /// **'The chat room could not complete this request.'**
   String get chatRoomErrorUnexpected;
 }
 
