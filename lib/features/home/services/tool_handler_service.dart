@@ -923,7 +923,8 @@ class ToolHandlerService {
       }
       final instruction =
           (args['instruction'] as String?)?.trim() ?? existing.prompt;
-      final reason = (args['reason'] as String?)?.trim() ?? existing.reason ?? '';
+      final reason =
+          (args['reason'] as String?)?.trim() ?? existing.reason ?? '';
       if (instruction.isEmpty || instruction.length > 32000) {
         return SentinelTaskTool.encodeError(
           'invalid_instruction',
