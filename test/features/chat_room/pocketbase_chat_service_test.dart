@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:Kelivo/features/chat_room/models/chat_room_message.dart';
 import 'package:Kelivo/features/chat_room/services/pocketbase_chat_service.dart';
 
@@ -32,9 +32,13 @@ void main() {
     test(
       'logs in before history and realtime, preserving the base path',
       () async {
-        final server = await _FakePocketBaseServer.start();
+        final server = _FakePocketBaseServer.start();
         final storage = _MemorySecureStorage();
-        final service = _service(server.baseUrl, secureStorage: storage);
+        final service = _service(
+          server.baseUrl,
+          secureStorage: storage,
+          httpClientFactory: server.newClient,
+        );
         addTearDown(() async {
           await service.close();
           await server.close();
@@ -111,9 +115,13 @@ void main() {
     test(
       'does not persist invalid tokens or expose password in errors',
       () async {
-        final server = await _FakePocketBaseServer.start(rejectLogin: true);
+        final server = _FakePocketBaseServer.start(rejectLogin: true);
         final storage = _MemorySecureStorage();
-        final service = _service(server.baseUrl, secureStorage: storage);
+        final service = _service(
+          server.baseUrl,
+          secureStorage: storage,
+          httpClientFactory: server.newClient,
+        );
         addTearDown(() async {
           await service.close(clearPersistedCredentials: true);
           await server.close();
@@ -144,9 +152,13 @@ void main() {
     );
 
     test('refreshes a restored token before loading history', () async {
-      final server = await _FakePocketBaseServer.start();
+      final server = _FakePocketBaseServer.start();
       final storage = _MemorySecureStorage();
-      final service = _service(server.baseUrl, secureStorage: storage);
+      final service = _service(
+        server.baseUrl,
+        secureStorage: storage,
+        httpClientFactory: server.newClient,
+      );
       final identity = '${server.baseUrl}|chat_users|user@example.test';
       final hash = sha256.convert(utf8.encode(identity));
       storage.values['kelivo.chat.pocketbase.auth.$hash'] = jsonEncode({
@@ -198,11 +210,13 @@ void main() {
 PocketBaseChatService _service(
   String url, {
   ChatRoomSecureStorage? secureStorage,
+  http.Client Function()? httpClientFactory,
 }) => PocketBaseChatService(
   serverUrl: url,
   messageCollection: 'chat_messages',
   authCollection: 'chat_users',
   secureStorage: secureStorage ?? _MemorySecureStorage(),
+  httpClientFactory: httpClientFactory,
 );
 
 class _MemorySecureStorage implements ChatRoomSecureStorage {
@@ -226,116 +240,121 @@ class _FakeRequest {
 }
 
 class _FakePocketBaseServer {
-  _FakePocketBaseServer(this._server, {required this.rejectLogin});
+  _FakePocketBaseServer({required this.rejectLogin});
 
-  final HttpServer _server;
   final bool rejectLogin;
   final requests = <_FakeRequest>[];
+  final _sseControllers = <StreamController<List<int>>>[];
   String? sseAuthorization;
   String? recordsAuthorization;
   Map<String, dynamic>? createdMessage;
-  StreamSubscription<HttpRequest>? _subscription;
 
-  String get baseUrl =>
-      'http://${_server.address.address}:${_server.port}/kelivo-pb';
+  String get baseUrl => 'https://pocketbase.example.test/kelivo-pb';
 
-  static Future<_FakePocketBaseServer> start({bool rejectLogin = false}) async {
-    final server = _FakePocketBaseServer(
-      await HttpServer.bind(InternetAddress.loopbackIPv4, 0),
-      rejectLogin: rejectLogin,
-    );
-    server._subscription = server._server.listen(server._handle);
-    return server;
-  }
+  static _FakePocketBaseServer start({bool rejectLogin = false}) =>
+      _FakePocketBaseServer(rejectLogin: rejectLogin);
 
-  Future<void> _handle(HttpRequest request) async {
-    final path = request.uri.path;
-    requests.add(
-      _FakeRequest(
-        path,
-        request.method,
-        request.headers.value(HttpHeaders.authorizationHeader),
-      ),
-    );
+  http.Client newClient() => _FakePocketBaseHttpClient(this);
+
+  Future<http.StreamedResponse> handle(
+    http.BaseRequest request,
+    _FakePocketBaseHttpClient client,
+  ) async {
+    final path = request.url.path;
+    final authorization = request.headers['Authorization'];
+    requests.add(_FakeRequest(path, request.method, authorization));
+
     if (path.endsWith('/auth-with-password')) {
-      await request.drain<void>();
       if (rejectLogin) {
-        request.response.statusCode = HttpStatus.badRequest;
-        request.response.write(jsonEncode({'message': 'Invalid credentials.'}));
-      } else {
-        request.response.headers.contentType = ContentType.json;
-        request.response.write(
-          jsonEncode({'token': _token, 'record': _record}),
-        );
+        return _jsonResponse(request, {'message': 'Invalid credentials.'}, 400);
       }
-      await request.response.close();
-      return;
+      return _jsonResponse(request, {'token': _token, 'record': _record});
     }
     if (path.endsWith('/auth-refresh')) {
-      await request.drain<void>();
-      request.response.headers.contentType = ContentType.json;
-      request.response.write(jsonEncode({'token': _token, 'record': _record}));
-      await request.response.close();
-      return;
+      return _jsonResponse(request, {'token': _token, 'record': _record});
     }
     if (path.endsWith('/realtime') && request.method == 'GET') {
-      sseAuthorization = request.headers.value(HttpHeaders.authorizationHeader);
-      request.response.headers
-        ..contentType = ContentType('text', 'event-stream')
-        ..set(HttpHeaders.cacheControlHeader, 'no-cache');
-      request.response.write(
-        'id: fake-client\nevent: PB_CONNECT\ndata: {}\n\n',
+      sseAuthorization = authorization;
+      final controller = StreamController<List<int>>();
+      _sseControllers.add(controller);
+      client._sseController = controller;
+      controller.add(
+        utf8.encode(
+          'id: fake-client\nevent: PB_CONNECT\n'
+          'data: {"clientId":"fake-client"}\n\n',
+        ),
       );
-      await request.response.flush();
-      return;
+      return http.StreamedResponse(
+        controller.stream,
+        200,
+        request: request,
+        headers: const {'content-type': 'text/event-stream'},
+      );
     }
     if (path.endsWith('/realtime') && request.method == 'POST') {
-      await request.drain<void>();
-      request.response.statusCode = HttpStatus.noContent;
-      await request.response.close();
-      return;
+      return _jsonResponse(request, null, 204);
     }
     if (path.endsWith('/chat_messages/records') && request.method == 'POST') {
-      createdMessage =
-          jsonDecode(await utf8.decoder.bind(request).join())
-              as Map<String, dynamic>;
-      request.response.headers.contentType = ContentType.json;
-      request.response.write(
-        jsonEncode({
-          'id': 'message-1',
-          'senderId': createdMessage!['senderId'],
-          'senderName': createdMessage!['senderName'],
-          'content': createdMessage!['content'],
-          'created': '2026-10-07 11:00:00.000Z',
-        }),
-      );
-      await request.response.close();
-      return;
+      createdMessage = request is http.Request
+          ? jsonDecode(request.body) as Map<String, dynamic>
+          : <String, dynamic>{};
+      return _jsonResponse(request, {
+        'id': 'message-1',
+        'senderId': createdMessage!['senderId'],
+        'senderName': createdMessage!['senderName'],
+        'content': createdMessage!['content'],
+        'created': '2026-10-07 11:00:00.000Z',
+      });
     }
     if (path.endsWith('/chat_messages/records')) {
-      recordsAuthorization = request.headers.value(
-        HttpHeaders.authorizationHeader,
-      );
-      request.response.headers.contentType = ContentType.json;
-      request.response.write(
-        jsonEncode({
-          'page': 1,
-          'perPage': 30,
-          'totalItems': 0,
-          'totalPages': 0,
-          'items': [],
-        }),
-      );
-      await request.response.close();
-      return;
+      recordsAuthorization = authorization;
+      return _jsonResponse(request, {
+        'page': 1,
+        'perPage': 30,
+        'totalItems': 0,
+        'totalPages': 0,
+        'items': [],
+      });
     }
-    request.response.statusCode = HttpStatus.notFound;
-    await request.response.close();
+    return _jsonResponse(request, {'message': 'Not found'}, 404);
   }
 
+  http.StreamedResponse _jsonResponse(
+    http.BaseRequest request,
+    Object? body, [
+    int statusCode = 200,
+  ]) => http.StreamedResponse(
+    body == null
+        ? const Stream<List<int>>.empty()
+        : Stream<List<int>>.value(utf8.encode(jsonEncode(body))),
+    statusCode,
+    request: request,
+    headers: const {'content-type': 'application/json'},
+  );
+
   Future<void> close() async {
-    await _subscription?.cancel();
-    await _server.close(force: true);
+    for (final controller in _sseControllers) {
+      if (!controller.isClosed) await controller.close();
+    }
+  }
+}
+
+class _FakePocketBaseHttpClient extends http.BaseClient {
+  _FakePocketBaseHttpClient(this._server);
+
+  final _FakePocketBaseServer _server;
+  StreamController<List<int>>? _sseController;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) =>
+      _server.handle(request, this);
+
+  @override
+  void close() {
+    final controller = _sseController;
+    if (controller != null && !controller.isClosed) {
+      unawaited(controller.close());
+    }
   }
 }
 
