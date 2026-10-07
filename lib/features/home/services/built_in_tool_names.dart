@@ -10,6 +10,8 @@ import 'local_tools_service.dart';
 abstract final class BuiltInToolNames {
   static Set<String> get all => {
     'create_sentinel_once',
+    'update_sentinel_once',
+    'cancel_sentinel',
     SearchToolService.toolName,
     'builtin_search',
     ...MemoryTools.allToolNames,
