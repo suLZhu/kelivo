@@ -535,14 +535,12 @@ class _SideDrawerState extends State<SideDrawer> with TickerProviderStateMixin {
                     row(
                       icon: Lucide.ArrowUp,
                       label: '移到顶部',
-                      action: () =>
-                          _moveConversationInList(chat, toEnd: false),
+                      action: () => _moveConversationInList(chat, toEnd: false),
                     ),
                     row(
                       icon: Lucide.ArrowDown,
                       label: '移到底部',
-                      action: () =>
-                          _moveConversationInList(chat, toEnd: true),
+                      action: () => _moveConversationInList(chat, toEnd: true),
                     ),
                     row(
                       icon: Lucide.Pin,
@@ -1935,8 +1933,8 @@ class _SideDrawerState extends State<SideDrawer> with TickerProviderStateMixin {
                                             initialized: service.initialized,
                                             query: _query,
                                             assistantListKey: assistantListKey,
-                                            conversationOrder:
-                                                settingsProvider.conversationOrder,
+                                            conversationOrder: settingsProvider
+                                                .conversationOrder,
                                             chatService: service,
                                             assistantProvider: ap,
                                           ),
@@ -2798,8 +2796,7 @@ class _SideDrawerState extends State<SideDrawer> with TickerProviderStateMixin {
                         initialized: selection.initialized,
                         query: _query,
                         assistantListKey: assistantListKey,
-                        conversationOrder:
-                            settingsProvider.conversationOrder,
+                        conversationOrder: settingsProvider.conversationOrder,
                         chatService: chatService,
                         assistantProvider: assistantProvider,
                       );
