@@ -12787,4 +12787,100 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get phoneControlEnableAssistant =>
       'Allow this assistant to use phone control';
+
+  @override
+  String get chatRoomTitle => 'Chat room';
+
+  @override
+  String get chatRoomConfigure => 'Chat room settings';
+
+  @override
+  String get chatRoomStatusConnecting => 'Connecting…';
+
+  @override
+  String get chatRoomStatusConnected => 'Connected';
+
+  @override
+  String get chatRoomStatusDisconnected => 'Connection lost';
+
+  @override
+  String get chatRoomStatusError => 'Connection error';
+
+  @override
+  String get chatRoomErrorDetails => 'Details';
+
+  @override
+  String get chatRoomConfigurePrompt =>
+      'Set a PocketBase server address to join the chat room.';
+
+  @override
+  String get chatRoomEmpty => 'No messages yet. Start the conversation.';
+
+  @override
+  String get chatRoomInputHint => 'Write a message';
+
+  @override
+  String get chatRoomInputDisabled => 'Connect to send messages';
+
+  @override
+  String get chatRoomSend => 'Send';
+
+  @override
+  String get chatRoomReconnect => 'Reconnect';
+
+  @override
+  String get chatRoomServerUrl => 'PocketBase server address';
+
+  @override
+  String get chatRoomCollection => 'Collection name';
+
+  @override
+  String get chatRoomCancel => 'Cancel';
+
+  @override
+  String get chatRoomSave => 'Save';
+
+  @override
+  String get chatRoomAuthCollection => 'PocketBase authentication collection';
+
+  @override
+  String get chatRoomEmail => 'Email';
+
+  @override
+  String get chatRoomPassword => 'Password';
+
+  @override
+  String get chatRoomSaveAndConnect => 'Save and connect';
+
+  @override
+  String get chatRoomErrorInvalidConfiguration =>
+      'Enter a valid PocketBase server address and collection names.';
+
+  @override
+  String get chatRoomErrorCredentialsRequired =>
+      'Enter your PocketBase email and password in chat room settings.';
+
+  @override
+  String get chatRoomErrorInvalidCredentials =>
+      'The email or password is incorrect.';
+
+  @override
+  String get chatRoomErrorUnauthorized =>
+      'Your session is no longer authorized. Please reconnect.';
+
+  @override
+  String get chatRoomErrorForbidden =>
+      'The account is not allowed to access the chat room.';
+
+  @override
+  String get chatRoomErrorNetwork =>
+      'A network error prevented connecting to PocketBase.';
+
+  @override
+  String get chatRoomErrorServerUnavailable =>
+      'PocketBase is unavailable or returned a server error.';
+
+  @override
+  String get chatRoomErrorUnexpected =>
+      'The chat room could not complete this request.';
 }

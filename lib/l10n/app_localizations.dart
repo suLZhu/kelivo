@@ -22841,6 +22841,180 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Allow this assistant to use phone control'**
   String get phoneControlEnableAssistant;
+
+  /// No description provided for @chatRoomTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat room'**
+  String get chatRoomTitle;
+
+  /// No description provided for @chatRoomConfigure.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat room settings'**
+  String get chatRoomConfigure;
+
+  /// No description provided for @chatRoomStatusConnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting…'**
+  String get chatRoomStatusConnecting;
+
+  /// No description provided for @chatRoomStatusConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get chatRoomStatusConnected;
+
+  /// No description provided for @chatRoomStatusDisconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection lost'**
+  String get chatRoomStatusDisconnected;
+
+  /// No description provided for @chatRoomStatusError.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection error'**
+  String get chatRoomStatusError;
+
+  /// No description provided for @chatRoomErrorDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get chatRoomErrorDetails;
+
+  /// No description provided for @chatRoomConfigurePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a PocketBase server address to join the chat room.'**
+  String get chatRoomConfigurePrompt;
+
+  /// No description provided for @chatRoomEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet. Start the conversation.'**
+  String get chatRoomEmpty;
+
+  /// No description provided for @chatRoomInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a message'**
+  String get chatRoomInputHint;
+
+  /// No description provided for @chatRoomInputDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to send messages'**
+  String get chatRoomInputDisabled;
+
+  /// No description provided for @chatRoomSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get chatRoomSend;
+
+  /// No description provided for @chatRoomReconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect'**
+  String get chatRoomReconnect;
+
+  /// No description provided for @chatRoomServerUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'PocketBase server address'**
+  String get chatRoomServerUrl;
+
+  /// No description provided for @chatRoomCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection name'**
+  String get chatRoomCollection;
+
+  /// No description provided for @chatRoomCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get chatRoomCancel;
+
+  /// No description provided for @chatRoomSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get chatRoomSave;
+
+  /// No description provided for @chatRoomAuthCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'PocketBase authentication collection'**
+  String get chatRoomAuthCollection;
+
+  /// No description provided for @chatRoomEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get chatRoomEmail;
+
+  /// No description provided for @chatRoomPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get chatRoomPassword;
+
+  /// No description provided for @chatRoomSaveAndConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Save and connect'**
+  String get chatRoomSaveAndConnect;
+
+  /// No description provided for @chatRoomErrorInvalidConfiguration.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid PocketBase server address and collection names.'**
+  String get chatRoomErrorInvalidConfiguration;
+
+  /// No description provided for @chatRoomErrorCredentialsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your PocketBase email and password in chat room settings.'**
+  String get chatRoomErrorCredentialsRequired;
+
+  /// No description provided for @chatRoomErrorInvalidCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'The email or password is incorrect.'**
+  String get chatRoomErrorInvalidCredentials;
+
+  /// No description provided for @chatRoomErrorUnauthorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session is no longer authorized. Please reconnect.'**
+  String get chatRoomErrorUnauthorized;
+
+  /// No description provided for @chatRoomErrorForbidden.
+  ///
+  /// In en, this message translates to:
+  /// **'The account is not allowed to access the chat room.'**
+  String get chatRoomErrorForbidden;
+
+  /// No description provided for @chatRoomErrorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'A network error prevented connecting to PocketBase.'**
+  String get chatRoomErrorNetwork;
+
+  /// No description provided for @chatRoomErrorServerUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'PocketBase is unavailable or returned a server error.'**
+  String get chatRoomErrorServerUnavailable;
+
+  /// No description provided for @chatRoomErrorUnexpected.
+  ///
+  /// In en, this message translates to:
+  /// **'The chat room could not complete this request.'**
+  String get chatRoomErrorUnexpected;
 }
 
 class _AppLocalizationsDelegate

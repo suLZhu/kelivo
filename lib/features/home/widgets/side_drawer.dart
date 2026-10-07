@@ -3,8 +3,11 @@ import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
+
 import '../../../icons/lucide_adapter.dart';
+
 import 'package:provider/provider.dart';
+
 import '../../../core/services/chat/chat_service.dart';
 import '../../../core/services/api/chat_api_service.dart';
 import '../../../core/services/logging/flutter_logger.dart';
@@ -19,21 +22,30 @@ import '../../../core/providers/assistant_provider.dart';
 import '../../../core/providers/update_provider.dart';
 import '../../../core/models/assistant.dart';
 import '../../chat/pages/chat_history_page.dart';
+import '../../chat_room/pages/chat_room_page.dart';
 import '../../../desktop/chat_history_dialog.dart';
+
 import 'package:flutter/services.dart';
+
 import 'dart:io' show File;
 import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
+
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/snackbar.dart';
+
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:animations/animations.dart';
+
 import '../../../utils/sandbox_path_resolver.dart';
 import '../../../utils/search_highlight.dart';
 import '../../../utils/avatar_cache.dart';
+
 import 'dart:ui' as ui;
+
 import '../../../shared/widgets/ios_checkbox.dart';
 import '../../../shared/widgets/ios_tactile.dart';
 import '../../../core/services/haptics.dart';
@@ -46,14 +58,18 @@ import '../../../core/providers/tag_provider.dart';
 import '../../assistant/widgets/assistant_select_sheet.dart';
 import '../../../desktop/hotkeys/sidebar_tab_bus.dart';
 import '../../../desktop/desktop_settings_navigation_bus.dart';
+
 import 'dart:async';
+
 import '../../../features/search/services/global_session_search_service.dart';
 import '../controllers/chat_actions.dart';
 import '../utils/model_display_helper.dart';
 import 'assistant_avatar.dart';
 import 'assistant_entry_actions.dart';
 import 'sidebar_selection_bars.dart';
+
 import 'package:Kelivo/theme/app_semantic_colors.dart';
+
 import '../../../shared/widgets/section_card.dart';
 
 class SideDrawer extends StatefulWidget {
@@ -2881,6 +2897,41 @@ class _SideDrawerState extends State<SideDrawer> with TickerProviderStateMixin {
                 }(),
               ),
 
+              if (!_selectionMode && !widget.globalSearchMode)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 4, 12, 6),
+                  child: IosCardPress(
+                    borderRadius: BorderRadius.circular(12),
+                    baseColor: Colors.transparent,
+                    onTap: () {
+                      Haptics.light();
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const ChatRoomPage()),
+                      );
+                    },
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Lucide.MessagesSquare,
+                          size: 19,
+                          color: textBase.withValues(alpha: 0.82),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          AppLocalizations.of(context)!.chatRoomTitle,
+                          style: TextStyle(
+                            color: textBase,
+                            fontWeight: AppFontWeights.medium,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 260),
                 switchInCurve: Curves.easeOutCubic,

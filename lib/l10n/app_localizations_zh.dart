@@ -12207,6 +12207,94 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get phoneControlEnableAssistant => '允许此助手使用手机控制';
+
+  @override
+  String get chatRoomTitle => '聊天室';
+
+  @override
+  String get chatRoomConfigure => '聊天室设置';
+
+  @override
+  String get chatRoomStatusConnecting => '正在连接…';
+
+  @override
+  String get chatRoomStatusConnected => '已连接';
+
+  @override
+  String get chatRoomStatusDisconnected => '连接已断开';
+
+  @override
+  String get chatRoomStatusError => '连接出错';
+
+  @override
+  String get chatRoomErrorDetails => '错误详情';
+
+  @override
+  String get chatRoomConfigurePrompt => '请设置 PocketBase 服务器地址以加入聊天室。';
+
+  @override
+  String get chatRoomEmpty => '还没有消息，开始聊天吧。';
+
+  @override
+  String get chatRoomInputHint => '输入消息';
+
+  @override
+  String get chatRoomInputDisabled => '连接后即可发送消息';
+
+  @override
+  String get chatRoomSend => '发送';
+
+  @override
+  String get chatRoomReconnect => '重新连接';
+
+  @override
+  String get chatRoomServerUrl => 'PocketBase 服务器地址';
+
+  @override
+  String get chatRoomCollection => 'Collection 名称';
+
+  @override
+  String get chatRoomCancel => '取消';
+
+  @override
+  String get chatRoomSave => '保存';
+
+  @override
+  String get chatRoomAuthCollection => 'PocketBase 认证 Collection';
+
+  @override
+  String get chatRoomEmail => '邮箱';
+
+  @override
+  String get chatRoomPassword => '密码';
+
+  @override
+  String get chatRoomSaveAndConnect => '保存并连接';
+
+  @override
+  String get chatRoomErrorInvalidConfiguration =>
+      'PocketBase 地址或 Collection 名称无效。';
+
+  @override
+  String get chatRoomErrorCredentialsRequired => '请在聊天室设置中填写邮箱和密码。';
+
+  @override
+  String get chatRoomErrorInvalidCredentials => '邮箱或密码错误。';
+
+  @override
+  String get chatRoomErrorUnauthorized => '当前会话未获授权，请重新连接。';
+
+  @override
+  String get chatRoomErrorForbidden => '此账号无权访问聊天室。';
+
+  @override
+  String get chatRoomErrorNetwork => '网络连接失败，无法连接 PocketBase。';
+
+  @override
+  String get chatRoomErrorServerUnavailable => 'PocketBase 服务器不可用或发生错误。';
+
+  @override
+  String get chatRoomErrorUnexpected => '聊天室请求未能完成。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -24338,6 +24426,94 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get phoneControlEnableAssistant => '允许此助手使用手机控制';
+
+  @override
+  String get chatRoomTitle => '聊天室';
+
+  @override
+  String get chatRoomConfigure => '聊天室设置';
+
+  @override
+  String get chatRoomStatusConnecting => '正在连接…';
+
+  @override
+  String get chatRoomStatusConnected => '已连接';
+
+  @override
+  String get chatRoomStatusDisconnected => '连接已断开';
+
+  @override
+  String get chatRoomStatusError => '连接出错';
+
+  @override
+  String get chatRoomErrorDetails => '错误详情';
+
+  @override
+  String get chatRoomConfigurePrompt => '请设置 PocketBase 服务器地址以加入聊天室。';
+
+  @override
+  String get chatRoomEmpty => '还没有消息，开始聊天吧。';
+
+  @override
+  String get chatRoomInputHint => '输入消息';
+
+  @override
+  String get chatRoomInputDisabled => '连接后即可发送消息';
+
+  @override
+  String get chatRoomSend => '发送';
+
+  @override
+  String get chatRoomReconnect => '重新连接';
+
+  @override
+  String get chatRoomServerUrl => 'PocketBase 服务器地址';
+
+  @override
+  String get chatRoomCollection => 'Collection 名称';
+
+  @override
+  String get chatRoomCancel => '取消';
+
+  @override
+  String get chatRoomSave => '保存';
+
+  @override
+  String get chatRoomAuthCollection => 'PocketBase 认证 Collection';
+
+  @override
+  String get chatRoomEmail => '邮箱';
+
+  @override
+  String get chatRoomPassword => '密码';
+
+  @override
+  String get chatRoomSaveAndConnect => '保存并连接';
+
+  @override
+  String get chatRoomErrorInvalidConfiguration =>
+      'PocketBase 地址或 Collection 名称无效。';
+
+  @override
+  String get chatRoomErrorCredentialsRequired => '请在聊天室设置中填写邮箱和密码。';
+
+  @override
+  String get chatRoomErrorInvalidCredentials => '邮箱或密码错误。';
+
+  @override
+  String get chatRoomErrorUnauthorized => '当前会话未获授权，请重新连接。';
+
+  @override
+  String get chatRoomErrorForbidden => '此账号无权访问聊天室。';
+
+  @override
+  String get chatRoomErrorNetwork => '网络连接失败，无法连接 PocketBase。';
+
+  @override
+  String get chatRoomErrorServerUnavailable => 'PocketBase 服务器不可用或发生错误。';
+
+  @override
+  String get chatRoomErrorUnexpected => '聊天室请求未能完成。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -36548,4 +36724,92 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get phoneControlEnableAssistant => '允許此助手使用手機控制';
+
+  @override
+  String get chatRoomTitle => '聊天室';
+
+  @override
+  String get chatRoomConfigure => '聊天室設定';
+
+  @override
+  String get chatRoomStatusConnecting => '正在連線…';
+
+  @override
+  String get chatRoomStatusConnected => '已連線';
+
+  @override
+  String get chatRoomStatusDisconnected => '連線已中斷';
+
+  @override
+  String get chatRoomStatusError => '連線錯誤';
+
+  @override
+  String get chatRoomErrorDetails => '錯誤詳情';
+
+  @override
+  String get chatRoomConfigurePrompt => '請設定 PocketBase 伺服器位址以加入聊天室。';
+
+  @override
+  String get chatRoomEmpty => '還沒有訊息，開始聊天吧。';
+
+  @override
+  String get chatRoomInputHint => '輸入訊息';
+
+  @override
+  String get chatRoomInputDisabled => '連線後即可傳送訊息';
+
+  @override
+  String get chatRoomSend => '傳送';
+
+  @override
+  String get chatRoomReconnect => '重新連線';
+
+  @override
+  String get chatRoomServerUrl => 'PocketBase 伺服器位址';
+
+  @override
+  String get chatRoomCollection => 'Collection 名稱';
+
+  @override
+  String get chatRoomCancel => '取消';
+
+  @override
+  String get chatRoomSave => '儲存';
+
+  @override
+  String get chatRoomAuthCollection => 'PocketBase 認證 Collection';
+
+  @override
+  String get chatRoomEmail => '電子郵件';
+
+  @override
+  String get chatRoomPassword => '密碼';
+
+  @override
+  String get chatRoomSaveAndConnect => '儲存並連線';
+
+  @override
+  String get chatRoomErrorInvalidConfiguration =>
+      'PocketBase 位址或 Collection 名稱無效。';
+
+  @override
+  String get chatRoomErrorCredentialsRequired => '請在聊天室設定中填寫電子郵件和密碼。';
+
+  @override
+  String get chatRoomErrorInvalidCredentials => '電子郵件或密碼錯誤。';
+
+  @override
+  String get chatRoomErrorUnauthorized => '目前工作階段未獲授權，請重新連線。';
+
+  @override
+  String get chatRoomErrorForbidden => '此帳號無權存取聊天室。';
+
+  @override
+  String get chatRoomErrorNetwork => '網路連線失敗，無法連線 PocketBase。';
+
+  @override
+  String get chatRoomErrorServerUnavailable => 'PocketBase 伺服器無法使用或發生錯誤。';
+
+  @override
+  String get chatRoomErrorUnexpected => '聊天室要求未能完成。';
 }
