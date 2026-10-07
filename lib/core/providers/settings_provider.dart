@@ -69,6 +69,7 @@ enum ImageUploadQuality { original, high, balanced, saver, custom }
 
 class SettingsProvider extends ChangeNotifier {
   static const String _providersOrderKey = 'providers_order_v1';
+  static const String _conversationOrderKey = 'conversation_order_v1';
   static const String _providerGroupsKey =
       'provider_groups_v1'; // [{id,name,createdAt}]
   static const String _providerGroupMapKey =
@@ -642,6 +643,22 @@ class SettingsProvider extends ChangeNotifier {
   int _appLaunchCount = 0;
   int get appLaunchCount => _appLaunchCount;
 
+  List<String> _conversationOrder = const <String>[];
+  List<String> get conversationOrder =>
+      List<String>.unmodifiable(_conversationOrder);
+
+  Future<void> setConversationOrder(List<String> ids) async {
+    final normalized = <String>[];
+    final seen = <String>{};
+    for (final id in ids) {
+      if (id.isNotEmpty && seen.add(id)) normalized.add(id);
+    }
+    if (listEquals(_conversationOrder, normalized)) return;
+    await _preferences.setStringList(_conversationOrderKey, normalized);
+    _conversationOrder = normalized;
+    notifyListeners();
+  }
+
   SettingsProvider(this._preferences) {
     ProviderOAuthService.instance.bind(this);
     _appLocaleTag = _readAppLocaleTag(_preferences);
@@ -660,6 +677,8 @@ class SettingsProvider extends ChangeNotifier {
     await prefs.load();
     final localPreferences = await SharedPreferences.getInstance();
     _providersOrder = prefs.getStringList(_providersOrderKey) ?? [];
+    _conversationOrder =
+        prefs.getStringList(_conversationOrderKey) ?? const <String>[];
     final m = prefs.getString(_themeModeKey);
     switch (m) {
       case 'light':
