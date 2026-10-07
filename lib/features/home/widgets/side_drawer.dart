@@ -116,7 +116,7 @@ class SideDrawer extends StatefulWidget {
   static int debugSidebarRowsComputeCount = 0;
 
   /// Testing hook: forces a host [setState] without changing the sidebar-rows
-  /// memo key `(conversationListRevision, initialized, query, assistantId)`.
+  /// memo key `(conversationListRevision, initialized, query, assistants)`.
   @visibleForTesting
   static VoidCallback? debugRequestConversationListHostRebuild;
 
@@ -178,12 +178,12 @@ class _SideDrawerState extends State<SideDrawer> with TickerProviderStateMixin {
   String? _runningGlobalSearchQuery;
 
   // Flattened sidebar rows memoized by (conversationListRevision,
-  // initialized, query, assistantId) so theme/animation rebuilds skip the
+  // initialized, query, assistant list) so theme/animation rebuilds skip the
   // O(n) rebuild.
   int? _cachedSidebarRowsRevision;
   bool? _cachedSidebarRowsInitialized;
   String? _cachedSidebarRowsQuery;
-  String? _cachedSidebarRowsAssistantId;
+  String? _cachedSidebarRowsAssistantListKey;
   List<_SidebarRow>? _cachedSidebarRows;
 
   bool _selectionMode = false;
@@ -1411,7 +1411,7 @@ class _SideDrawerState extends State<SideDrawer> with TickerProviderStateMixin {
   }
 
   /// Memoized flatten of pinned section + date groups into sidebar rows.
-  /// Recomputes only when `(revision, initialized, query, assistantId)`
+  /// Recomputes only when `(revision, initialized, query, assistants)`
   /// changes.
   /// Headers store stable date buckets (not localized labels) so locale
   /// switches can re-render without bumping this memo.
@@ -1419,48 +1419,55 @@ class _SideDrawerState extends State<SideDrawer> with TickerProviderStateMixin {
     required int revision,
     required bool initialized,
     required String query,
-    required String? assistantId,
+    required String assistantListKey,
     required ChatService chatService,
+    required AssistantProvider assistantProvider,
   }) {
     if (_cachedSidebarRows != null &&
         _cachedSidebarRowsRevision == revision &&
         _cachedSidebarRowsInitialized == initialized &&
         _cachedSidebarRowsQuery == query &&
-        _cachedSidebarRowsAssistantId == assistantId) {
+        _cachedSidebarRowsAssistantListKey == assistantListKey) {
       return _cachedSidebarRows!;
     }
     SideDrawer.debugSidebarRowsComputeCount++;
     final rows = _computeSidebarRows(
       chatService: chatService,
-      assistantId: assistantId,
+      assistantProvider: assistantProvider,
       query: query,
     );
     _cachedSidebarRows = rows;
     _cachedSidebarRowsRevision = revision;
     _cachedSidebarRowsInitialized = initialized;
     _cachedSidebarRowsQuery = query;
-    _cachedSidebarRowsAssistantId = assistantId;
+    _cachedSidebarRowsAssistantListKey = assistantListKey;
     return rows;
   }
 
   List<_SidebarRow> _computeSidebarRows({
     required ChatService chatService,
-    required String? assistantId,
+    required AssistantProvider assistantProvider,
     required String query,
   }) {
     final q = query.trim().toLowerCase();
     final pinned = <ChatItem>[];
     final rest = <ChatItem>[];
-    // Single pass: filter assistant + query, split pinned/rest via ChatItem.isPinned.
+    // Single pass: query all assistants' conversations, then split pinned/rest.
     for (final c in chatService.getAllConversations()) {
-      if (c.assistantId != assistantId && c.assistantId != null) continue;
       final title = c.title;
-      if (q.isNotEmpty && !title.toLowerCase().contains(q)) continue;
+      final assistant = c.assistantId == null
+          ? null
+          : assistantProvider.getById(c.assistantId!);
+      final assistantName = assistant?.name;
+      final searchableText = '${assistantName ?? ''} $title'.toLowerCase();
+      if (q.isNotEmpty && !searchableText.contains(q)) continue;
       final item = ChatItem(
         id: c.id,
         title: title,
         created: c.updatedAt,
         isPinned: c.isPinned,
+        assistantId: c.assistantId,
+        assistantName: assistantName,
       );
       if (item.isPinned) {
         pinned.add(item);
@@ -2682,18 +2689,21 @@ class _SideDrawerState extends State<SideDrawer> with TickerProviderStateMixin {
                     builder: (context, selection, _) {
                       SideDrawer.debugConversationListBuildCount++;
                       final chatService = context.read<ChatService>();
-                      final assistantId = context
-                          .watch<AssistantProvider>()
-                          .currentAssistantId;
+                      final assistantProvider =
+                          context.watch<AssistantProvider>();
+                      final assistantListKey = assistantProvider.assistants
+                          .map((a) => '${a.id}\u0000${a.name}')
+                          .join('\u0001');
                       // Use last-activity time (updatedAt) for ordering and grouping.
-                      // Flattened + memoized by
-                      // (revision, initialized, query, assistantId).
+                      // Flattened + memoized by conversation state, query, and
+                      // assistant identities/names.
                       final rows = _sidebarRowsFor(
                         revision: selection.revision,
                         initialized: selection.initialized,
                         query: _query,
-                        assistantId: assistantId,
+                        assistantListKey: assistantListKey,
                         chatService: chatService,
+                        assistantProvider: assistantProvider,
                       );
                       if (useTabs) {
                         final isDesktop = _isDesktop;
@@ -4437,7 +4447,11 @@ class _ChatTileState extends State<_ChatTile> {
                     ),
                     Expanded(
                       child: Text(
-                        widget.chat.title,
+                        [
+                          if ((widget.chat.assistantName ?? '').isNotEmpty)
+                            widget.chat.assistantName!,
+                          widget.chat.title,
+                        ].join(' · '),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
