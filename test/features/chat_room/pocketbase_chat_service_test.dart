@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:Kelivo/features/chat_room/models/chat_room_message.dart';
 import 'package:Kelivo/features/chat_room/services/pocketbase_chat_service.dart';
 
 void main() {
@@ -39,13 +40,21 @@ void main() {
           await server.close();
         });
 
-        final history = await service.connect(
-          email: 'user@example.test',
-          password: 'sensitive-password',
-          forcePasswordLogin: true,
-          onStatus: (_, [__]) {},
-          onMessage: (_) {},
-        );
+        late final List<ChatRoomMessage> history;
+        try {
+          history = await service.connect(
+            email: 'user@example.test',
+            password: 'sensitive-password',
+            forcePasswordLogin: true,
+            onStatus: (_, [__]) {},
+            onMessage: (_) {},
+          );
+        } catch (error) {
+          fail(
+            'Connection failed ($error); PocketBase paths: '
+            '${server.requests.map((request) => request.path).join(', ')}',
+          );
+        }
 
         expect(history, isEmpty);
         expect(service.isAuthenticated, isTrue);
@@ -149,11 +158,18 @@ void main() {
         await server.close();
       });
 
-      await service.connect(
-        email: 'user@example.test',
-        onStatus: (_, [__]) {},
-        onMessage: (_) {},
-      );
+      try {
+        await service.connect(
+          email: 'user@example.test',
+          onStatus: (_, [__]) {},
+          onMessage: (_) {},
+        );
+      } catch (error) {
+        fail(
+          'Connection failed ($error); PocketBase paths: '
+          '${server.requests.map((request) => request.path).join(', ')}',
+        );
+      }
 
       expect(
         server.requests.first.path,
