@@ -12207,6 +12207,57 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get phoneControlEnableAssistant => '允许此助手使用手机控制';
+
+  @override
+  String get chatRoomTitle => '聊天室';
+
+  @override
+  String get chatRoomConfigure => '聊天室设置';
+
+  @override
+  String get chatRoomStatusConnecting => '正在连接…';
+
+  @override
+  String get chatRoomStatusConnected => '已连接';
+
+  @override
+  String get chatRoomStatusDisconnected => '连接已断开';
+
+  @override
+  String get chatRoomStatusError => '连接出错';
+
+  @override
+  String get chatRoomErrorDetails => '错误详情';
+
+  @override
+  String get chatRoomConfigurePrompt => '请设置 PocketBase 服务器地址以加入聊天室。';
+
+  @override
+  String get chatRoomEmpty => '还没有消息，开始聊天吧。';
+
+  @override
+  String get chatRoomInputHint => '输入消息';
+
+  @override
+  String get chatRoomInputDisabled => '连接后即可发送消息';
+
+  @override
+  String get chatRoomSend => '发送';
+
+  @override
+  String get chatRoomReconnect => '重新连接';
+
+  @override
+  String get chatRoomServerUrl => 'PocketBase 服务器地址';
+
+  @override
+  String get chatRoomCollection => 'Collection 名称';
+
+  @override
+  String get chatRoomCancel => '取消';
+
+  @override
+  String get chatRoomSave => '保存';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -24338,6 +24389,57 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get phoneControlEnableAssistant => '允许此助手使用手机控制';
+
+  @override
+  String get chatRoomTitle => '聊天室';
+
+  @override
+  String get chatRoomConfigure => '聊天室设置';
+
+  @override
+  String get chatRoomStatusConnecting => '正在连接…';
+
+  @override
+  String get chatRoomStatusConnected => '已连接';
+
+  @override
+  String get chatRoomStatusDisconnected => '连接已断开';
+
+  @override
+  String get chatRoomStatusError => '连接出错';
+
+  @override
+  String get chatRoomErrorDetails => '错误详情';
+
+  @override
+  String get chatRoomConfigurePrompt => '请设置 PocketBase 服务器地址以加入聊天室。';
+
+  @override
+  String get chatRoomEmpty => '还没有消息，开始聊天吧。';
+
+  @override
+  String get chatRoomInputHint => '输入消息';
+
+  @override
+  String get chatRoomInputDisabled => '连接后即可发送消息';
+
+  @override
+  String get chatRoomSend => '发送';
+
+  @override
+  String get chatRoomReconnect => '重新连接';
+
+  @override
+  String get chatRoomServerUrl => 'PocketBase 服务器地址';
+
+  @override
+  String get chatRoomCollection => 'Collection 名称';
+
+  @override
+  String get chatRoomCancel => '取消';
+
+  @override
+  String get chatRoomSave => '保存';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -36548,4 +36650,55 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get phoneControlEnableAssistant => '允許此助手使用手機控制';
+
+  @override
+  String get chatRoomTitle => '聊天室';
+
+  @override
+  String get chatRoomConfigure => '聊天室設定';
+
+  @override
+  String get chatRoomStatusConnecting => '正在連線…';
+
+  @override
+  String get chatRoomStatusConnected => '已連線';
+
+  @override
+  String get chatRoomStatusDisconnected => '連線已中斷';
+
+  @override
+  String get chatRoomStatusError => '連線錯誤';
+
+  @override
+  String get chatRoomErrorDetails => '錯誤詳情';
+
+  @override
+  String get chatRoomConfigurePrompt => '請設定 PocketBase 伺服器位址以加入聊天室。';
+
+  @override
+  String get chatRoomEmpty => '還沒有訊息，開始聊天吧。';
+
+  @override
+  String get chatRoomInputHint => '輸入訊息';
+
+  @override
+  String get chatRoomInputDisabled => '連線後即可傳送訊息';
+
+  @override
+  String get chatRoomSend => '傳送';
+
+  @override
+  String get chatRoomReconnect => '重新連線';
+
+  @override
+  String get chatRoomServerUrl => 'PocketBase 伺服器位址';
+
+  @override
+  String get chatRoomCollection => 'Collection 名稱';
+
+  @override
+  String get chatRoomCancel => '取消';
+
+  @override
+  String get chatRoomSave => '儲存';
 }

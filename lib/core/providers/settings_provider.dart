@@ -68,6 +68,11 @@ enum MobileMessageNavButtonsMode { always, scroll, never }
 enum ImageUploadQuality { original, high, balanced, saver, custom }
 
 class SettingsProvider extends ChangeNotifier {
+  static const String _chatRoomPocketBaseServerUrlKey =
+      'chat_room_pocketbase_server_url';
+  static const String _chatRoomPocketBaseCollectionKey =
+      'chat_room_pocketbase_collection';
+  static const String _defaultChatRoomPocketBaseCollection = 'chat_messages';
   static const String _providersOrderKey = 'providers_order_v1';
   static const String _providerGroupsKey =
       'provider_groups_v1'; // [{id,name,createdAt}]
@@ -654,6 +659,21 @@ class SettingsProvider extends ChangeNotifier {
   final BusinessPreferences _preferences;
   late final Future<void> _loaded;
   Future<void> get loaded => _loaded;
+
+  String get chatRoomPocketBaseServerUrl =>
+      _preferences.getString(_chatRoomPocketBaseServerUrlKey) ?? '';
+
+  String get chatRoomPocketBaseCollection =>
+      _preferences.getString(_chatRoomPocketBaseCollectionKey) ??
+      _defaultChatRoomPocketBaseCollection;
+
+  Future<void> setChatRoomPocketBaseConfig({
+    required String serverUrl,
+    required String collection,
+  }) async {
+    await _preferences.setString(_chatRoomPocketBaseServerUrlKey, serverUrl);
+    await _preferences.setString(_chatRoomPocketBaseCollectionKey, collection);
+  }
 
   Future<void> _load() async {
     final prefs = _preferences;

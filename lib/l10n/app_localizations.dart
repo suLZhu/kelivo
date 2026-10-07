@@ -22841,6 +22841,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Allow this assistant to use phone control'**
   String get phoneControlEnableAssistant;
+
+  /// No description provided for @chatRoomTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat room'**
+  String get chatRoomTitle;
+
+  /// No description provided for @chatRoomConfigure.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat room settings'**
+  String get chatRoomConfigure;
+
+  /// No description provided for @chatRoomStatusConnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting…'**
+  String get chatRoomStatusConnecting;
+
+  /// No description provided for @chatRoomStatusConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get chatRoomStatusConnected;
+
+  /// No description provided for @chatRoomStatusDisconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection lost'**
+  String get chatRoomStatusDisconnected;
+
+  /// No description provided for @chatRoomStatusError.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection error'**
+  String get chatRoomStatusError;
+
+  /// No description provided for @chatRoomErrorDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get chatRoomErrorDetails;
+
+  /// No description provided for @chatRoomConfigurePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a PocketBase server address to join the chat room.'**
+  String get chatRoomConfigurePrompt;
+
+  /// No description provided for @chatRoomEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet. Start the conversation.'**
+  String get chatRoomEmpty;
+
+  /// No description provided for @chatRoomInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a message'**
+  String get chatRoomInputHint;
+
+  /// No description provided for @chatRoomInputDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to send messages'**
+  String get chatRoomInputDisabled;
+
+  /// No description provided for @chatRoomSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get chatRoomSend;
+
+  /// No description provided for @chatRoomReconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect'**
+  String get chatRoomReconnect;
+
+  /// No description provided for @chatRoomServerUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'PocketBase server address'**
+  String get chatRoomServerUrl;
+
+  /// No description provided for @chatRoomCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection name'**
+  String get chatRoomCollection;
+
+  /// No description provided for @chatRoomCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get chatRoomCancel;
+
+  /// No description provided for @chatRoomSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get chatRoomSave;
 }
 
 class _AppLocalizationsDelegate

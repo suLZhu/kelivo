@@ -12787,4 +12787,56 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get phoneControlEnableAssistant =>
       'Allow this assistant to use phone control';
+
+  @override
+  String get chatRoomTitle => 'Chat room';
+
+  @override
+  String get chatRoomConfigure => 'Chat room settings';
+
+  @override
+  String get chatRoomStatusConnecting => 'Connecting…';
+
+  @override
+  String get chatRoomStatusConnected => 'Connected';
+
+  @override
+  String get chatRoomStatusDisconnected => 'Connection lost';
+
+  @override
+  String get chatRoomStatusError => 'Connection error';
+
+  @override
+  String get chatRoomErrorDetails => 'Details';
+
+  @override
+  String get chatRoomConfigurePrompt =>
+      'Set a PocketBase server address to join the chat room.';
+
+  @override
+  String get chatRoomEmpty => 'No messages yet. Start the conversation.';
+
+  @override
+  String get chatRoomInputHint => 'Write a message';
+
+  @override
+  String get chatRoomInputDisabled => 'Connect to send messages';
+
+  @override
+  String get chatRoomSend => 'Send';
+
+  @override
+  String get chatRoomReconnect => 'Reconnect';
+
+  @override
+  String get chatRoomServerUrl => 'PocketBase server address';
+
+  @override
+  String get chatRoomCollection => 'Collection name';
+
+  @override
+  String get chatRoomCancel => 'Cancel';
+
+  @override
+  String get chatRoomSave => 'Save';
 }
