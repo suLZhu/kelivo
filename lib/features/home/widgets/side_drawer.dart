@@ -2689,8 +2689,8 @@ class _SideDrawerState extends State<SideDrawer> with TickerProviderStateMixin {
                     builder: (context, selection, _) {
                       SideDrawer.debugConversationListBuildCount++;
                       final chatService = context.read<ChatService>();
-                      final assistantProvider =
-                          context.watch<AssistantProvider>();
+                      final assistantProvider = context
+                          .watch<AssistantProvider>();
                       final assistantListKey = assistantProvider.assistants
                           .map((a) => '${a.id}\u0000${a.name}')
                           .join('\u0001');
