@@ -184,6 +184,7 @@ class _SideDrawerState extends State<SideDrawer> with TickerProviderStateMixin {
   bool? _cachedSidebarRowsInitialized;
   String? _cachedSidebarRowsQuery;
   String? _cachedSidebarRowsAssistantListKey;
+  String? _cachedSidebarRowsConversationOrderKey;
   List<_SidebarRow>? _cachedSidebarRows;
 
   bool _selectionMode = false;
@@ -253,6 +254,30 @@ class _SideDrawerState extends State<SideDrawer> with TickerProviderStateMixin {
     setState(() {}); // update search hint when switching tabs
   }
 
+  Future<void> _moveConversationInList(
+    ChatItem chat, {
+    required bool toEnd,
+  }) async {
+    final chatService = context.read<ChatService>();
+    final settings = context.read<SettingsProvider>();
+    final live = chatService.getAllConversations().toList()
+      ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    final liveIds = live.map((conversation) => conversation.id).toSet();
+    final ordered = <String>[
+      for (final id in settings.conversationOrder)
+        if (liveIds.contains(id)) id,
+      for (final conversation in live)
+        if (!settings.conversationOrder.contains(conversation.id))
+          conversation.id,
+    ]..remove(chat.id);
+    if (toEnd) {
+      ordered.add(chat.id);
+    } else {
+      ordered.insert(0, chat.id);
+    }
+    await settings.setConversationOrder(ordered);
+  }
+
   void _showChatMenu(
     BuildContext context,
     ChatItem chat, {
@@ -289,6 +314,20 @@ class _SideDrawerState extends State<SideDrawer> with TickerProviderStateMixin {
             label: l10n.sideDrawerMenuRename,
             onTap: () async {
               await _renameChat(context, chat);
+            },
+          ),
+          DesktopContextMenuItem(
+            icon: Lucide.ArrowUp,
+            label: '移到顶部',
+            onTap: () async {
+              await _moveConversationInList(chat, toEnd: false);
+            },
+          ),
+          DesktopContextMenuItem(
+            icon: Lucide.ArrowDown,
+            label: '移到底部',
+            onTap: () async {
+              await _moveConversationInList(chat, toEnd: true);
             },
           ),
           DesktopContextMenuItem(
@@ -492,6 +531,18 @@ class _SideDrawerState extends State<SideDrawer> with TickerProviderStateMixin {
                       action: () async {
                         _renameChat(context, chat);
                       },
+                    ),
+                    row(
+                      icon: Lucide.ArrowUp,
+                      label: '移到顶部',
+                      action: () =>
+                          _moveConversationInList(chat, toEnd: false),
+                    ),
+                    row(
+                      icon: Lucide.ArrowDown,
+                      label: '移到底部',
+                      action: () =>
+                          _moveConversationInList(chat, toEnd: true),
                     ),
                     row(
                       icon: Lucide.Pin,
@@ -1420,6 +1471,7 @@ class _SideDrawerState extends State<SideDrawer> with TickerProviderStateMixin {
     required bool initialized,
     required String query,
     required String assistantListKey,
+    required List<String> conversationOrder,
     required ChatService chatService,
     required AssistantProvider assistantProvider,
   }) {
@@ -1427,7 +1479,9 @@ class _SideDrawerState extends State<SideDrawer> with TickerProviderStateMixin {
         _cachedSidebarRowsRevision == revision &&
         _cachedSidebarRowsInitialized == initialized &&
         _cachedSidebarRowsQuery == query &&
-        _cachedSidebarRowsAssistantListKey == assistantListKey) {
+        _cachedSidebarRowsAssistantListKey == assistantListKey &&
+        _cachedSidebarRowsConversationOrderKey ==
+            conversationOrder.join('\u0001')) {
       return _cachedSidebarRows!;
     }
     SideDrawer.debugSidebarRowsComputeCount++;
@@ -1435,12 +1489,14 @@ class _SideDrawerState extends State<SideDrawer> with TickerProviderStateMixin {
       chatService: chatService,
       assistantProvider: assistantProvider,
       query: query,
+      conversationOrder: conversationOrder,
     );
     _cachedSidebarRows = rows;
     _cachedSidebarRowsRevision = revision;
     _cachedSidebarRowsInitialized = initialized;
     _cachedSidebarRowsQuery = query;
     _cachedSidebarRowsAssistantListKey = assistantListKey;
+    _cachedSidebarRowsConversationOrderKey = conversationOrder.join('\u0001');
     return rows;
   }
 
@@ -1448,6 +1504,7 @@ class _SideDrawerState extends State<SideDrawer> with TickerProviderStateMixin {
     required ChatService chatService,
     required AssistantProvider assistantProvider,
     required String query,
+    required List<String> conversationOrder,
   }) {
     final q = query.trim().toLowerCase();
     final pinned = <ChatItem>[];
@@ -1475,8 +1532,38 @@ class _SideDrawerState extends State<SideDrawer> with TickerProviderStateMixin {
         rest.add(item);
       }
     }
-    pinned.sort((a, b) => b.created.compareTo(a.created));
-    final groups = _groupByDate(rest);
+    final orderIndex = <String, int>{
+      for (var i = 0; i < conversationOrder.length; i++)
+        conversationOrder[i]: i,
+    };
+    int compareItems(ChatItem a, ChatItem b) {
+      final ai = orderIndex[a.id];
+      final bi = orderIndex[b.id];
+      if (ai != null && bi != null) return ai.compareTo(bi);
+      if (ai != null) return -1;
+      if (bi != null) return 1;
+      return b.created.compareTo(a.created);
+    }
+
+    pinned.sort(compareItems);
+    rest.sort(compareItems);
+    final groups = <_ChatGroup>[];
+    if (conversationOrder.isEmpty) {
+      groups.addAll(_groupByDate(rest));
+    } else {
+      for (final item in rest) {
+        final date = DateTime(
+          item.created.year,
+          item.created.month,
+          item.created.day,
+        );
+        if (groups.isNotEmpty && groups.last.date == date) {
+          groups.last.items.add(item);
+        } else {
+          groups.add(_ChatGroup(date: date, items: <ChatItem>[item]));
+        }
+      }
+    }
 
     final rows = <_SidebarRow>[];
     if (pinned.isNotEmpty) {
@@ -1627,6 +1714,7 @@ class _SideDrawerState extends State<SideDrawer> with TickerProviderStateMixin {
     final cs = theme.colorScheme;
     final textBase = cs.onSurface; // 纯黑（白天），夜间自动适配
     final ap = context.watch<AssistantProvider>();
+    final settingsProvider = context.watch<SettingsProvider>();
     final currentAssistantId = ap.currentAssistantId;
     final assistantListKey = ap.assistants
         .map((a) => '${a.id}\u0000${a.name}')
@@ -1658,6 +1746,7 @@ class _SideDrawerState extends State<SideDrawer> with TickerProviderStateMixin {
         initialized: chatServiceForSelection.initialized,
         query: _query,
         assistantListKey: assistantListKey,
+        conversationOrder: settingsProvider.conversationOrder,
         chatService: chatServiceForSelection,
         assistantProvider: ap,
       );
@@ -1846,6 +1935,8 @@ class _SideDrawerState extends State<SideDrawer> with TickerProviderStateMixin {
                                             initialized: service.initialized,
                                             query: _query,
                                             assistantListKey: assistantListKey,
+                                            conversationOrder:
+                                                settingsProvider.conversationOrder,
                                             chatService: service,
                                             assistantProvider: ap,
                                           ),
@@ -2707,6 +2798,8 @@ class _SideDrawerState extends State<SideDrawer> with TickerProviderStateMixin {
                         initialized: selection.initialized,
                         query: _query,
                         assistantListKey: assistantListKey,
+                        conversationOrder:
+                            settingsProvider.conversationOrder,
                         chatService: chatService,
                         assistantProvider: assistantProvider,
                       );
