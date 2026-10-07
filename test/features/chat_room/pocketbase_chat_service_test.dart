@@ -89,26 +89,9 @@ void main() {
         expect(server.createdMessage?['senderName'], '用户');
         expect(server.createdMessage?['content'], 'Hi');
         expect(!service.toString().contains('sensitive-password'), isTrue);
-        final realtimeUpdatesBeforeClose = server.requests
-            .where(
-              (request) =>
-                  request.method == 'POST' &&
-                  request.path.endsWith('/realtime'),
-            )
-            .length;
-
         await service.close(clearPersistedCredentials: true);
         expect(storage.values.isEmpty, isTrue);
-        expect(
-          server.requests
-              .where(
-                (request) =>
-                    request.method == 'POST' &&
-                    request.path.endsWith('/realtime'),
-              )
-              .length,
-          greaterThan(realtimeUpdatesBeforeClose),
-        );
+        expect(server.realtimeStreamClosed, isTrue);
       },
     );
 
@@ -248,6 +231,10 @@ class _FakePocketBaseServer {
   String? sseAuthorization;
   String? recordsAuthorization;
   Map<String, dynamic>? createdMessage;
+
+  bool get realtimeStreamClosed =>
+      _sseControllers.isNotEmpty &&
+      _sseControllers.every((stream) => stream.isClosed);
 
   String get baseUrl => 'https://pocketbase.example.test/kelivo-pb';
 
