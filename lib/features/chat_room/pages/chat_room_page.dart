@@ -187,8 +187,9 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     final normalizedEmail = config.email.trim();
     if (normalizedUrl.isEmpty ||
         normalizedCollection.isEmpty ||
-        normalizedAuthCollection.isEmpty)
+        normalizedAuthCollection.isEmpty) {
       return;
+    }
     final identityChanged =
         normalizedUrl != _serverUrl ||
         normalizedAuthCollection != _authCollection ||
@@ -196,6 +197,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     final oldService = _service;
     _service = null;
     await oldService?.close(clearPersistedCredentials: identityChanged);
+    if (!mounted) return;
     await context.read<SettingsProvider>().setChatRoomPocketBaseConfig(
       serverUrl: normalizedUrl,
       collection: normalizedCollection,

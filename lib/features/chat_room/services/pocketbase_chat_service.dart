@@ -70,14 +70,12 @@ class PocketBaseChatService {
     required String messageCollection,
     required String authCollection,
     ChatRoomSecureStorage? secureStorage,
-    PocketBaseChatClientFactory? clientFactory,
-    http.Client Function()? httpClientFactory,
+    this._clientFactory,
+    this._httpClientFactory,
   }) : _serverUrl = normalizeBaseAddress(serverUrl),
        _messageCollection = messageCollection.trim(),
        _authCollection = authCollection.trim(),
-       _secureStorage = secureStorage ?? const PlatformChatRoomSecureStorage(),
-       _clientFactory = clientFactory,
-       _httpClientFactory = httpClientFactory;
+       _secureStorage = secureStorage ?? const PlatformChatRoomSecureStorage();
 
   final String _serverUrl;
   final String _messageCollection;
@@ -396,10 +394,10 @@ class PocketBaseChatService {
       if (code == 403) {
         return const ChatRoomServiceException(ChatRoomFailure.forbidden);
       }
-      if (code == 0 || (code == null && error.originalError != null)) {
+      if (code == 0) {
         return const ChatRoomServiceException(ChatRoomFailure.network);
       }
-      if (code != null && code >= 500) {
+      if (code >= 500) {
         return const ChatRoomServiceException(
           ChatRoomFailure.serverUnavailable,
         );
