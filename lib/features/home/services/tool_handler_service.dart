@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../core/models/assistant.dart';
 import '../../../core/models/model_spec.dart';
 import '../../../core/models/reasoning_request.dart';
+import '../../../core/models/scheduled_task.dart';
 import '../../../core/providers/assistant_provider.dart';
 import '../../../core/providers/environment_provider.dart';
 import '../../../core/providers/mcp_provider.dart';
@@ -347,10 +348,10 @@ class ToolHandlerService {
     result.removeWhere((definition) {
       final function = definition['function'];
       return function is Map<String, dynamic> &&
-          function['name'] == SentinelTaskTool.name;
+          SentinelTaskTool.names.contains(function['name']);
     });
     if (supportsTools && assistant != null) {
-      result.add(SentinelTaskTool.definition);
+      result.addAll(SentinelTaskTool.definitions);
     }
     return result;
   }
@@ -505,8 +506,22 @@ class ToolHandlerService {
             assistant: assistant,
             assistantProvider: assistantProvider,
             conversationId: conversationId,
-            approvalService: approvalService,
-            toolCallId: approvalIdFor(name, toolCallId),
+          );
+        }
+        if (name == SentinelTaskTool.updateName) {
+          return await _updateSentinelOnce(
+            args: args,
+            assistant: assistant,
+            assistantProvider: assistantProvider,
+            conversationId: conversationId,
+          );
+        }
+        if (name == SentinelTaskTool.cancelName) {
+          return await _cancelSentinel(
+            args: args,
+            assistant: assistant,
+            assistantProvider: assistantProvider,
+            conversationId: conversationId,
           );
         }
         if (workspaceContext != null &&
@@ -662,8 +677,6 @@ class ToolHandlerService {
     required Assistant? assistant,
     required AssistantProvider assistantProvider,
     required String? conversationId,
-    required ToolApprovalService? approvalService,
-    required String toolCallId,
   }) async {
     const allowed = {'runAt', 'instruction', 'reason'};
     if (args.keys.toSet().difference(allowed).isNotEmpty ||
@@ -768,39 +781,6 @@ class ToolHandlerService {
       );
     }
 
-    if (approvalService == null) {
-      return SentinelTaskTool.encodeError(
-        'scheduling_failed',
-        'User approval is unavailable; no task was created.',
-      );
-    }
-    late final ToolApprovalResult approval;
-    try {
-      approval = await approvalService.requestApproval(
-        toolCallId: toolCallId,
-        toolName: SentinelTaskTool.name,
-        arguments: {
-          'runAt': args['runAt'],
-          'instruction': instruction,
-          'reason': reason,
-        },
-        conversationId: binding.conversationId,
-      );
-    } catch (_) {
-      return SentinelTaskTool.encodeError(
-        'scheduling_failed',
-        'The approval request failed; no task was created.',
-      );
-    }
-    if (!approval.approved) {
-      return SentinelTaskTool.encodeError(
-        'approval_denied',
-        approval.denyReason == 'cancelled'
-            ? 'The sentinel request was cancelled; no task was created.'
-            : 'The user declined the sentinel request.',
-      );
-    }
-
     try {
       final revalidatedAt = DateTime.now();
       runAtLocal = SentinelTaskTool.parseRunAt(
@@ -838,6 +818,180 @@ class ToolHandlerService {
       return SentinelTaskTool.encodeError(
         'scheduling_failed',
         'The sentinel could not be scheduled; no task was created.',
+      );
+    }
+  }
+
+  Future<List<ScheduledTask>> _boundPendingSentinels({
+    required Assistant? assistant,
+    required AssistantProvider assistantProvider,
+    required String? conversationId,
+  }) async {
+    if (assistant == null || assistant.id.trim().isEmpty) return const [];
+    if (assistantProvider.getById(assistant.id) == null) return const [];
+    final cid = conversationId?.trim() ?? '';
+    if (cid.isEmpty) return const [];
+    final service = ScheduledTasksService.instance;
+    await service.refresh();
+    return service.tasks
+        .where(
+          (task) =>
+              task.taskKind == ScheduledTaskKind.assistantSentinel &&
+              task.assistantId == assistant.id &&
+              task.conversationId == cid &&
+              task.enabled &&
+              !task.exhausted,
+        )
+        .toList();
+  }
+
+  String _sentinelSelectionError(List<ScheduledTask> candidates) {
+    if (candidates.isEmpty) {
+      return SentinelTaskTool.encodeError(
+        'sentinel_not_found',
+        'No pending sentinel belongs to this assistant and conversation.',
+      );
+    }
+    return jsonEncode({
+      'ok': false,
+      'error': 'sentinel_ambiguous',
+      'message': 'More than one pending sentinel exists; provide taskId.',
+      'tasks': [
+        for (final task in candidates)
+          {
+            'taskId': task.id,
+            'name': task.name,
+            'runAt': task.nextRunAt?.toUtc().toIso8601String(),
+          },
+      ],
+    });
+  }
+
+  Future<String> _updateSentinelOnce({
+    required Map<String, dynamic> args,
+    required Assistant? assistant,
+    required AssistantProvider assistantProvider,
+    required String? conversationId,
+  }) async {
+    const allowed = {'taskId', 'runAt', 'instruction', 'reason'};
+    if (args.keys.toSet().difference(allowed).isNotEmpty ||
+        args.values.any((value) => value is! String)) {
+      return SentinelTaskTool.encodeError(
+        'invalid_arguments',
+        'Provide only string values for taskId, runAt, instruction, and reason.',
+      );
+    }
+    if (!args.keys.any((key) => key != 'taskId')) {
+      return SentinelTaskTool.encodeError(
+        'invalid_arguments',
+        'Provide at least one of runAt, instruction, or reason.',
+      );
+    }
+    final candidates = await _boundPendingSentinels(
+      assistant: assistant,
+      assistantProvider: assistantProvider,
+      conversationId: conversationId,
+    );
+    final requestedId = (args['taskId'] as String?)?.trim();
+    final matches = requestedId == null || requestedId.isEmpty
+        ? candidates
+        : candidates.where((task) => task.id == requestedId).toList();
+    if (matches.length != 1) return _sentinelSelectionError(matches);
+    final existing = matches.single;
+    try {
+      final existingDate = existing.onceDate;
+      if (existingDate == null) {
+        return SentinelTaskTool.encodeError(
+          'invalid_sentinel',
+          'The selected task is not a one-time sentinel.',
+        );
+      }
+      final runAtLocal = args.containsKey('runAt')
+          ? SentinelTaskTool.parseRunAt(args['runAt'] as String)
+          : DateTime(
+              existingDate.year,
+              existingDate.month,
+              existingDate.day,
+              existing.hour,
+              existing.minute,
+            );
+      if (!runAtLocal.isAfter(DateTime.now())) {
+        return SentinelTaskTool.encodeError(
+          'run_at_in_past',
+          'The updated sentinel time must be later than the current time.',
+        );
+      }
+      final instruction =
+          (args['instruction'] as String?)?.trim() ?? existing.prompt;
+      final reason = (args['reason'] as String?)?.trim() ?? existing.reason ?? '';
+      if (instruction.isEmpty || instruction.length > 32000) {
+        return SentinelTaskTool.encodeError(
+          'invalid_instruction',
+          'instruction must contain between 1 and 32000 characters.',
+        );
+      }
+      final updated = SentinelTaskTool.buildTask(
+        id: existing.id,
+        runAtLocal: runAtLocal,
+        instruction: instruction,
+        reason: reason,
+        assistantId: existing.assistantId,
+        conversationId: existing.conversationId!,
+      );
+      await ScheduledTasksService.instance.save(updated);
+      return jsonEncode({
+        'ok': true,
+        'action': 'updated',
+        'taskId': updated.id,
+        'scheduledAt': runAtLocal.toUtc().toIso8601String(),
+        'conversationId': updated.conversationId,
+      });
+    } on SentinelTaskToolException catch (error) {
+      return SentinelTaskTool.encodeError(error.code, error.message);
+    } catch (_) {
+      return SentinelTaskTool.encodeError(
+        'scheduling_failed',
+        'The sentinel could not be updated.',
+      );
+    }
+  }
+
+  Future<String> _cancelSentinel({
+    required Map<String, dynamic> args,
+    required Assistant? assistant,
+    required AssistantProvider assistantProvider,
+    required String? conversationId,
+  }) async {
+    if (args.keys.any((key) => key != 'taskId') ||
+        args.values.any((value) => value is! String)) {
+      return SentinelTaskTool.encodeError(
+        'invalid_arguments',
+        'Provide only an optional string taskId.',
+      );
+    }
+    final candidates = await _boundPendingSentinels(
+      assistant: assistant,
+      assistantProvider: assistantProvider,
+      conversationId: conversationId,
+    );
+    final requestedId = (args['taskId'] as String?)?.trim();
+    final matches = requestedId == null || requestedId.isEmpty
+        ? candidates
+        : candidates.where((task) => task.id == requestedId).toList();
+    if (matches.length != 1) return _sentinelSelectionError(matches);
+    final task = matches.single;
+    try {
+      await ScheduledTasksService.instance.delete(task.id);
+      return jsonEncode({
+        'ok': true,
+        'action': 'cancelled',
+        'taskId': task.id,
+        'conversationId': task.conversationId,
+      });
+    } catch (_) {
+      return SentinelTaskTool.encodeError(
+        'scheduling_failed',
+        'The sentinel could not be cancelled.',
       );
     }
   }
