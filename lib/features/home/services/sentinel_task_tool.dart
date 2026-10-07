@@ -6,13 +6,23 @@ import '../../../core/models/scheduled_task.dart';
 
 class SentinelTaskTool {
   static const name = 'create_sentinel_once';
+  static const updateName = 'update_sentinel_once';
+  static const cancelName = 'cancel_sentinel';
+
+  static const names = {name, updateName, cancelName};
+
+  static List<Map<String, dynamic>> get definitions => [
+    definition,
+    updateDefinition,
+    cancelDefinition,
+  ];
 
   static Map<String, dynamic> get definition => {
     'type': 'function',
     'function': {
       'name': name,
       'description':
-          'Schedule a one-time check that returns to this conversation. The user must approve it.',
+          'Schedule a one-time check that returns to this conversation.',
       'parameters': {
         'type': 'object',
         'properties': {
@@ -31,6 +41,57 @@ class SentinelTaskTool {
           },
         },
         'required': ['runAt', 'instruction', 'reason'],
+        'additionalProperties': false,
+      },
+    },
+  };
+
+  static Map<String, dynamic> get updateDefinition => {
+    'type': 'function',
+    'function': {
+      'name': updateName,
+      'description':
+          'Update a pending sentinel created by this assistant in this conversation. Omit taskId only when exactly one pending sentinel exists.',
+      'parameters': {
+        'type': 'object',
+        'properties': {
+          'taskId': {
+            'type': 'string',
+            'description': 'The sentinel task ID returned when it was created.',
+          },
+          'runAt': {
+            'type': 'string',
+            'description':
+                'Optional replacement RFC 3339 absolute date-time with timezone; exact minute only.',
+          },
+          'instruction': {
+            'type': 'string',
+            'description': 'Optional replacement instruction.',
+          },
+          'reason': {
+            'type': 'string',
+            'description': 'Optional replacement reason.',
+          },
+        },
+        'additionalProperties': false,
+      },
+    },
+  };
+
+  static Map<String, dynamic> get cancelDefinition => {
+    'type': 'function',
+    'function': {
+      'name': cancelName,
+      'description':
+          'Cancel a pending sentinel created by this assistant in this conversation. Omit taskId only when exactly one pending sentinel exists.',
+      'parameters': {
+        'type': 'object',
+        'properties': {
+          'taskId': {
+            'type': 'string',
+            'description': 'The sentinel task ID returned when it was created.',
+          },
+        },
         'additionalProperties': false,
       },
     },
@@ -125,10 +186,11 @@ class SentinelTaskTool {
     required String reason,
     required String assistantId,
     required String conversationId,
+    String? id,
   }) {
     final label = reason.trim().isEmpty ? instruction.trim() : reason.trim();
     return ScheduledTask(
-      id: const Uuid().v4(),
+      id: id ?? const Uuid().v4(),
       name: String.fromCharCodes(label.runes.take(48)),
       prompt: instruction,
       reason: reason,
