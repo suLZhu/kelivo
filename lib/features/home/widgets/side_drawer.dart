@@ -1628,6 +1628,9 @@ class _SideDrawerState extends State<SideDrawer> with TickerProviderStateMixin {
     final textBase = cs.onSurface; // 纯黑（白天），夜间自动适配
     final ap = context.watch<AssistantProvider>();
     final currentAssistantId = ap.currentAssistantId;
+    final assistantListKey = ap.assistants
+        .map((a) => '${a.id}\u0000${a.name}')
+        .join('\u0001');
     final chatServiceForSelection = context.read<ChatService>();
     if (_selectionMode) {
       // Header/action bar live outside the conversation-list Selector.
@@ -1654,8 +1657,9 @@ class _SideDrawerState extends State<SideDrawer> with TickerProviderStateMixin {
         revision: chatServiceForSelection.conversationListRevision,
         initialized: chatServiceForSelection.initialized,
         query: _query,
-        assistantId: currentAssistantId,
+        assistantListKey: assistantListKey,
         chatService: chatServiceForSelection,
+        assistantProvider: ap,
       );
       final visibleIds = <String>[
         for (final row in selectionRows)
@@ -1841,8 +1845,9 @@ class _SideDrawerState extends State<SideDrawer> with TickerProviderStateMixin {
                                                 .conversationListRevision,
                                             initialized: service.initialized,
                                             query: _query,
-                                            assistantId: currentAssistantId,
+                                            assistantListKey: assistantListKey,
                                             chatService: service,
+                                            assistantProvider: ap,
                                           ),
                                         );
                                       },
