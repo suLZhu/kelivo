@@ -88,6 +88,14 @@ void main() {
         expect(server.createdMessage?['senderId'], 'user');
         expect(server.createdMessage?['senderName'], '用户');
         expect(server.createdMessage?['content'], 'Hi');
+        await service.sendTextAs(
+          senderId: 'assistant-1',
+          senderName: '小晏',
+          content: '  Hello from the assistant.  ',
+        );
+        expect(server.createdMessage?['senderId'], 'assistant-1');
+        expect(server.createdMessage?['senderName'], '小晏');
+        expect(server.createdMessage?['content'], 'Hello from the assistant.');
         expect(!service.toString().contains('sensitive-password'), isTrue);
         await service.close(clearPersistedCredentials: true);
         expect(storage.values.isEmpty, isTrue);
