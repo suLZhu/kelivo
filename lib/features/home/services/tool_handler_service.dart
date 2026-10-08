@@ -29,6 +29,7 @@ import '../../../core/services/workspace/tool_run_registry.dart';
 import '../../../core/services/workspace/workspace_runtime.dart';
 import '../../../core/services/workspace/workspace_tools_service.dart';
 import '../../../core/providers/workspace_provider.dart';
+import '../../chat_room/services/chat_room_tools.dart';
 import 'ask_user_interaction_service.dart';
 import 'built_in_tool_names.dart';
 import 'local_tools_service.dart';
@@ -312,6 +313,11 @@ class ToolHandlerService {
         supportsTools: supportsTools,
       ),
     );
+    if (supportsTools &&
+        assistant != null &&
+        ChatRoomTools.isConfigured(settings)) {
+      toolDefs.addAll(ChatRoomTools.definitions);
+    }
 
     // MCP tools
     final mcpTools = _buildMcpToolDefinitions(
@@ -500,6 +506,21 @@ class ToolHandlerService {
 
     return (name, args, {toolCallId}) async {
       try {
+        if (ChatRoomTools.names.contains(name)) {
+          if (assistant == null) {
+            return _toolError(
+              error: 'assistant_required',
+              message: 'A current assistant is required for chat room tools.',
+              tool: name,
+            );
+          }
+          return ChatRoomTools.execute(
+            name: name,
+            arguments: args,
+            settings: settings,
+            assistant: assistant,
+          );
+        }
         if (name == SentinelTaskTool.name) {
           return await _createSentinelOnce(
             args: args,
