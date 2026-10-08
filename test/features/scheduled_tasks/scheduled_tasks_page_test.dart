@@ -40,6 +40,7 @@ void main() {
   late SettingsProvider settings;
   var permission = true;
   var taskEnabled = true;
+  var taskExhausted = false;
   setUp(() async {
     settings = SettingsProvider(
       (await createBusinessTestHarness()).preferences,
@@ -47,6 +48,7 @@ void main() {
     await settings.loaded;
     permission = true;
     taskEnabled = true;
+    taskExhausted = false;
     calls.clear();
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (call) async {
@@ -59,6 +61,7 @@ void main() {
             'tasks': [
               jsonEncode({
                 ...task.toJson(enabled: taskEnabled),
+                'exhausted': taskExhausted,
                 'nextRunAt': task.nextRunAt!.millisecondsSinceEpoch,
               }),
             ],
@@ -117,6 +120,37 @@ void main() {
     await tester.pumpAndSettle();
     expect(calls.any((c) => c.method == 'runNow'), isTrue);
     expect(permissionRequests, 1);
+  });
+
+  testWidgets('filters active, completed, and disabled tasks', (tester) async {
+    taskExhausted = true;
+    taskEnabled = false;
+    await tester.pumpWidget(app(ScheduledTasksPage(service: service)));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('scheduled-tasks-filter-bar')),
+      findsOneWidget,
+    );
+    expect(find.text('Morning briefing'), findsOneWidget);
+
+    await tester.tap(
+      find.byKey(const ValueKey('scheduled-tasks-filter-active')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Morning briefing'), findsNothing);
+
+    await tester.tap(
+      find.byKey(const ValueKey('scheduled-tasks-filter-completed')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Morning briefing'), findsOneWidget);
+
+    await tester.tap(
+      find.byKey(const ValueKey('scheduled-tasks-filter-disabled')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Morning briefing'), findsNothing);
   });
 
   for (final granted in [true, false]) {
