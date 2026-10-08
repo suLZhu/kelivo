@@ -341,11 +341,7 @@ class PocketBaseChatService {
   }
 
   Future<ChatRoomMessage> sendText(String content) async {
-    return sendTextAs(
-      senderId: 'user',
-      senderName: '用户',
-      content: content,
-    );
+    return sendTextAs(senderId: 'user', senderName: '用户', content: content);
   }
 
   Future<ChatRoomMessage> sendTextAs({
