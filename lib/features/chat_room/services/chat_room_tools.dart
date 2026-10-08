@@ -117,7 +117,7 @@ abstract final class ChatRoomTools {
 
   static int _readLimit(Object? raw) {
     final parsed = raw is num ? raw.toInt() : int.tryParse('$raw');
-    return (parsed ?? 20).clamp(1, 100) as int;
+    return (parsed ?? 20).clamp(1, 100);
   }
 
   static Map<String, dynamic> _messageJson(ChatRoomMessage message) => {
