@@ -24,7 +24,8 @@ abstract final class ChatRoomTools {
           'properties': {
             'limit': {
               'type': 'integer',
-              'description': 'Number of latest messages to return (1-100, default 20).',
+              'description':
+                  'Number of latest messages to return (1-100, default 20).',
             },
           },
         },
@@ -127,9 +128,6 @@ abstract final class ChatRoomTools {
     'created': message.created.toIso8601String(),
   };
 
-  static String _error(String error, String message) => jsonEncode({
-    'success': false,
-    'error': error,
-    'message': message,
-  });
+  static String _error(String error, String message) =>
+      jsonEncode({'success': false, 'error': error, 'message': message});
 }
