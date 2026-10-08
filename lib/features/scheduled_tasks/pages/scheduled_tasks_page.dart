@@ -38,6 +38,8 @@ String _repeatLabel(ScheduledTask task, AppLocalizations l) {
 String _date(DateTime date, AppLocalizations l) =>
     DateFormat.Md(l.localeName).add_Hm().format(date);
 
+enum _TaskFilter { all, active, completed, disabled }
+
 /// Controls use Kelivo's shared iOS/R3 components on mobile and desktop.
 class ScheduledTasksPage extends StatefulWidget {
   const ScheduledTasksPage({
@@ -57,6 +59,19 @@ class ScheduledTasksPage extends StatefulWidget {
 class _ScheduledTasksPageState extends State<ScheduledTasksPage>
     with WidgetsBindingObserver {
   late final service = widget.service ?? ScheduledTasksService.instance;
+  _TaskFilter _filter = _TaskFilter.all;
+
+  List<ScheduledTask> get _filteredTasks => service.tasks
+      .where((task) {
+        return switch (_filter) {
+          _TaskFilter.all => true,
+          _TaskFilter.active => task.enabled && !task.exhausted,
+          _TaskFilter.completed => task.exhausted,
+          _TaskFilter.disabled => !task.enabled && !task.exhausted,
+        };
+      })
+      .toList(growable: false);
+
   @override
   void initState() {
     super.initState();
@@ -407,8 +422,38 @@ class _ScheduledTasksPageState extends State<ScheduledTasksPage>
       ? l.scheduledTasksLoading
       : l.scheduledTasksNextRun(_date(task.nextRunAt!, l));
 
+  String _filterLabel(_TaskFilter filter, AppLocalizations l) =>
+      switch (filter) {
+        _TaskFilter.all => l.storageSpaceSourceAll,
+        _TaskFilter.active => l.multiKeyPageStatusActive,
+        _TaskFilter.completed => l.scheduledTasksCompleted,
+        _TaskFilter.disabled => l.multiKeyPageStatusDisabled,
+      };
+
+  Widget _filterBar(AppLocalizations l) {
+    return SingleChildScrollView(
+      key: const ValueKey('scheduled-tasks-filter-bar'),
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          for (final filter in _TaskFilter.values) ...[
+            ChoiceChip(
+              key: ValueKey('scheduled-tasks-filter-${filter.name}'),
+              label: Text(_filterLabel(filter, l)),
+              selected: _filter == filter,
+              onSelected: (_) => setState(() => _filter = filter),
+            ),
+            if (filter != _TaskFilter.values.last) const SizedBox(width: 8),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _desktopLayout(AppLocalizations l) {
     final cs = Theme.of(context).colorScheme;
+    final tasks = _filteredTasks;
     return ScheduledTasksScaffold(
       embedded: widget.embedded,
       title: l.scheduledTasksTitle,
@@ -420,7 +465,8 @@ class _ScheduledTasksPageState extends State<ScheduledTasksPage>
         children: [
           if (service.error != null) IosSectionFooter(text: service.error!),
           if (!service.loaded) IosSectionFooter(text: l.scheduledTasksLoading),
-          if (service.loaded && service.tasks.isEmpty)
+          if (service.loaded && service.tasks.isNotEmpty) _filterBar(l),
+          if (service.loaded && tasks.isEmpty)
             Padding(
               key: const ValueKey('desktop-scheduled-tasks-empty'),
               padding: const EdgeInsets.symmetric(vertical: 40),
@@ -450,7 +496,7 @@ class _ScheduledTasksPageState extends State<ScheduledTasksPage>
                 ],
               ),
             ),
-          for (final task in service.tasks)
+          for (final task in tasks)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: DesktopScheduledTaskTile(
@@ -568,6 +614,7 @@ class _ScheduledTasksPageState extends State<ScheduledTasksPage>
     final l = AppLocalizations.of(context)!;
     final cs = Theme.of(context).colorScheme;
     if (service.isDesktop) return _desktopLayout(l);
+    final tasks = _filteredTasks;
     return ScheduledTasksScaffold(
       embedded: widget.embedded,
       title: l.scheduledTasksTitle,
@@ -579,6 +626,7 @@ class _ScheduledTasksPageState extends State<ScheduledTasksPage>
         children: [
           if (service.error != null) IosSectionFooter(text: service.error!),
           if (!service.loaded) IosSectionFooter(text: l.scheduledTasksLoading),
+          if (service.loaded && service.tasks.isNotEmpty) _filterBar(l),
           if (!service.isDesktop && service.loaded && !service.exactAlarms) ...[
             SectionCard(
               children: [
@@ -594,7 +642,7 @@ class _ScheduledTasksPageState extends State<ScheduledTasksPage>
             ),
             const SizedBox(height: 20),
           ],
-          if (service.loaded && service.tasks.isEmpty) ...[
+          if (service.loaded && tasks.isEmpty) ...[
             const SizedBox(height: 36),
             Icon(
               LucideIcons.clock,
@@ -621,7 +669,7 @@ class _ScheduledTasksPageState extends State<ScheduledTasksPage>
             ),
             const SizedBox(height: 40),
           ],
-          for (final task in service.tasks) ...[
+          for (final task in tasks) ...[
             ScheduledTaskTile(
               name: task.name,
               time: task.timeLabel,
