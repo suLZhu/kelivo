@@ -341,7 +341,18 @@ class PocketBaseChatService {
   }
 
   Future<ChatRoomMessage> sendText(String content) async {
+    return sendTextAs(senderId: 'user', senderName: '用户', content: content);
+  }
+
+  Future<ChatRoomMessage> sendTextAs({
+    required String senderId,
+    required String senderName,
+    required String content,
+  }) async {
     if (content.trim().isEmpty) {
+      throw const ChatRoomServiceException(ChatRoomFailure.unexpected);
+    }
+    if (senderId.trim().isEmpty || senderName.trim().isEmpty) {
       throw const ChatRoomServiceException(ChatRoomFailure.unexpected);
     }
     final client = _requireAuthenticatedClient();
@@ -349,7 +360,11 @@ class PocketBaseChatService {
       final record = await client
           .collection(_messageCollection)
           .create(
-            body: {'senderId': 'user', 'senderName': '用户', 'content': content},
+            body: {
+              'senderId': senderId.trim(),
+              'senderName': senderName.trim(),
+              'content': content.trim(),
+            },
           );
       return ChatRoomMessage.fromRecord(record.toJson());
     } catch (error) {
