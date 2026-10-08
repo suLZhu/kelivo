@@ -18,17 +18,15 @@ void main() {
 
     final readParameters =
         byName[ChatRoomTools.readName]!['parameters'] as Map<String, dynamic>;
-    expect(
-      (readParameters['properties'] as Map<String, dynamic>).keys,
-      ['limit'],
-    );
+    expect((readParameters['properties'] as Map<String, dynamic>).keys, [
+      'limit',
+    ]);
 
     final sendParameters =
         byName[ChatRoomTools.sendName]!['parameters'] as Map<String, dynamic>;
-    expect(
-      (sendParameters['properties'] as Map<String, dynamic>).keys,
-      ['content'],
-    );
+    expect((sendParameters['properties'] as Map<String, dynamic>).keys, [
+      'content',
+    ]);
     expect(sendParameters['required'], ['content']);
   });
 }
